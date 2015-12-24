@@ -1,5 +1,8 @@
 package it.unibs.pajc.agar.universe;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
@@ -16,6 +19,16 @@ public abstract class GameObject {
 
     private AffineTransform shapeTransform = new AffineTransform();
 
+    public GameObject(Point2D.Float position, int mass, Shape shape, Color color, Universe universe) {
+        this.shape = shape;
+        setMass(mass);
+        this.position = new Point2D.Float();
+        setPosition(position.x, position.y);
+        this.color = color;
+        this.universe = universe;
+        this.target = (Point2D.Float) this.position.clone();
+    }
+
     public Point2D.Float getPosition() {
         return position;
     }
@@ -23,11 +36,6 @@ public abstract class GameObject {
     public void setPosition(float x, float y) {
         this.position.x = x;
         this.position.y = y;
-    }
-
-    public void setMass(int mass) {
-        this.mass = mass;
-        setSpeed((float) (4 - 0.001* (float) mass));
     }
 
     public Shape getShape(boolean translated) {
@@ -64,16 +72,6 @@ public abstract class GameObject {
         }
     }
 
-    public GameObject(Point2D.Float position, int mass, Shape shape, Color color, Universe universe) {
-        this.shape = shape;
-        setMass(mass);
-        this.position = new Point2D.Float();
-        setPosition(position.x, position.y);
-        this.color = color;
-        this.universe = universe;
-        this.target = (Point2D.Float) this.position.clone();
-    }
-
     protected abstract void prepareUpdate();
 
     public void update() {
@@ -88,7 +86,7 @@ public abstract class GameObject {
         if (target.distance(position) < speed) {
             position.setLocation(target);
             target = null;
-            //System.out.println("DESTINATION REACHED!!!");
+            System.out.println("DESTINATION REACHED!!!");
             return;
         }
 
@@ -103,22 +101,44 @@ public abstract class GameObject {
         setPosition(
                 (float)Math.max(0, Math.min(x, universe.getBounds().width)),
                 (float)Math.max(0, Math.min(y, universe.getBounds().height))
-        );//System.out.println("Moving! New pos = "+position);
+        );
     }
 
     public boolean isInside(Point2D.Float bottomLeftVertex, Dimension size) {
 
-        return  position.getX() > bottomLeftVertex.getX() + shape.getBounds2D().getWidth() &&
-                position.getX() < bottomLeftVertex.getX() + size.getWidth() &&
-                position.getY() > bottomLeftVertex.getY() + shape.getBounds2D().getHeight() &&
-                position.getY() < bottomLeftVertex.getY() + size.getHeight();
+        return position.getX() >= bottomLeftVertex.getX() &&
+                position.getX() <= bottomLeftVertex.getX() + size.getWidth() &&
+                position.getY() >= bottomLeftVertex.getY() &&
+                position.getY() <= bottomLeftVertex.getY() + size.getHeight();
     }
 
     public int getMass() {
         return mass;
     }
 
+    public void setMass(int mass) {
+        this.mass = mass;
+        setSpeed((float) (4 - 0.001 * (float) mass));
+    }
+
     public void eat(GameObject object) {
         setMass(getMass() + object.getMass());
+    }
+
+    public JSONObject toJSON() {
+        JSONObject out = new JSONObject();
+        out.put("x", (int) position.getX());
+        out.put("y", (int) position.getY());
+        out.put("m", mass);
+        return out;
+    }
+
+    public void fromJSON(JSONObject in) throws IllegalArgumentException {
+        try {
+            move(in.getInt("x"), in.getInt("y"));
+            mass = in.getInt("m");
+        } catch (JSONException e) {
+            throw new IllegalArgumentException("Couldn't parse GameObject", e);
+        }
     }
 }

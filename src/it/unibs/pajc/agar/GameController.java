@@ -7,43 +7,39 @@ import it.unibs.pajc.agar.universe.Universe;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
-public class GameController extends JPanel implements KeyListener, MouseMotionListener {
+public class GameController extends JPanel implements KeyListener, MouseListener, MouseMotionListener {
 
     private static final String CONNECTING = "Connecting...";
 
     private static GameController instance;
-    public static GameController getInstance() {
-        if (instance == null) instance = new GameController();
-        return instance;
-    }
+    private final boolean debugging = false;
+    Universe universe;
+    Point2D.Float offset;
+    Point2D.Float mouse, eventMousePosition = new Point2D.Float();
+    Font loginFont = new Font("Arial", Font.BOLD, 50);
 
     private GameController() {
         super();
         StartDialog dialog = new StartDialog();
-        dialog.setVisible(true);
+        //noinspection PointlessBooleanExpression, ConstantConditions
+        if (!debugging) dialog.setVisible(true);
+        else dialog.closeDialog(true);
         this.setMinimumSize(new Dimension(800,600));
         new Timer(20, e -> this.repaint()).start();
         offset = new Point2D.Float(0,0);
         mouse = new Point2D.Float(0,0);
-
-        NetworkController.getInstance().connect();
+        universe = new Universe(dialog.getPlayerName(), new Dimension(5000, 3000));
+        if (dialog.isServer()) universe.generateRandomFood(500);
+        NetworkController.getInstance().connect(dialog.isServer(), dialog.getIpAddress(), 1234, universe);
     }
 
-
-    Universe universe;
-    Point2D.Float offset;
-    Point2D.Float mouse;
-
-    private void initUniverse() {
-        universe = new Universe("PlayerName", new Dimension(5000, 3000));
-        universe.generateRandomFood(500);
+    public static GameController getInstance() {
+        if (instance == null) instance = new GameController();
+        return instance;
     }
 
     @Override
@@ -58,11 +54,11 @@ public class GameController extends JPanel implements KeyListener, MouseMotionLi
                 paintLogin(g);
                 break;
             case DEAD:
+                System.exit(1);
                 break;
         }
     }
 
-    Font loginFont = new Font("Arial", Font.BOLD, 50);
     private void paintLogin(Graphics2D g) {
         clearScreen(g, Color.BLACK);
         g.setFont(loginFont);
@@ -75,15 +71,16 @@ public class GameController extends JPanel implements KeyListener, MouseMotionLi
     }
 
     private void paintGame(Graphics2D g) {
-        Point2D mousePosition = MouseInfo.getPointerInfo().getLocation();
-        mouse.setLocation(mousePosition.getX() + offset.x, this.getSize().getHeight() - mousePosition.getY() + offset.y);
-
         updateOffset();
+        mouse.setLocation(eventMousePosition.x + offset.x, eventMousePosition.y + offset.y - this.getY() - this.getAlignmentY());
         initScreen(g);
 
-        if (mouse.getX() != 0 || mouse.getY() != 0) {
+        g.setColor(Color.RED);
+        g.drawOval((int) mouse.x - 5, (int) mouse.y - 5, 10, 10);
+
+        if ((mouse.getX() != 0 || mouse.getY() != 0) && !universe.getPlayer().isInside(mouse)) {
             universe.getPlayer().setTarget(mouse);
-        }
+        } else universe.getPlayer().setTarget(null);
         universe.update();
 
         for (Food f : universe.getFoods().values()) {
@@ -139,12 +136,37 @@ public class GameController extends JPanel implements KeyListener, MouseMotionLi
     }
 
     @Override
+    public void mouseClicked(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+
+    }
+
+    @Override
     public void mouseDragged(MouseEvent e) {
 
     }
 
     @Override
     public void mouseMoved(MouseEvent e) {
-        //mouse.setLocation(e.getPoint().getX() + offset.x, this.getSize().getHeight() - e.getPoint().getY() + offset.y);
+        this.eventMousePosition.setLocation(e.getX(), this.getHeight() - e.getY());
     }
 }

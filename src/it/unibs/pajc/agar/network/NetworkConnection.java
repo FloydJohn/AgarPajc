@@ -1,6 +1,10 @@
 package it.unibs.pajc.agar.network;
 
+import it.unibs.pajc.agar.universe.Food;
 import it.unibs.pajc.agar.universe.Universe;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import javax.swing.*;
 import java.io.*;
@@ -21,13 +25,11 @@ public abstract class NetworkConnection extends Thread{
 
     @Override
     public void interrupt() {
-        super.interrupt();
         try {
             socket.close();
+            super.interrupt();
         } catch (IOException e) {
             System.out.println("Failed to close socket: "+e);
-        } finally {
-            controller.updateConnections(this, false);
         }
     }
 
@@ -54,4 +56,68 @@ public abstract class NetworkConnection extends Thread{
 
     public abstract void send(BufferedWriter out);
     public abstract void receive(String received);
+
+    public static class Client extends NetworkConnection {
+
+        public Client(Universe universe, Socket socket, NetworkController networkController) {
+            super(universe, socket, networkController);
+        }
+
+        @Override
+        public void send(BufferedWriter out) {
+            try {
+                JSONObject jsonOut = myUniverse.getPlayer().toJSON();
+                JSONArray eaten = new JSONArray();
+                myUniverse.getFoods().values().stream().filter(f -> f.getCurrentState() == Food.State.TO_ADD).forEach(f -> eaten.put(f.toJSON()));
+                if (eaten.length() > 0) jsonOut.put("e", eaten);
+                jsonOut.write(out);
+                out.write("\n");
+                out.flush();
+            } catch (IOException e) {
+                System.out.println("Couldn't flush: " + e);
+                this.interrupt();
+            }
+        }
+
+        @Override
+        public void receive(String in) {
+            try {
+                System.out.println("Client received data: " + in);
+                myUniverse.fromJSON(new JSONObject(in));
+            } catch (IllegalArgumentException e) {
+                System.out.println("Bad formatted json in: " + e);
+            }
+        }
+    }
+
+    public static class Server extends NetworkConnection {
+
+        public Server(Universe universe, Socket socket, NetworkController networkController) {
+            super(universe, socket, networkController);
+        }
+
+        @Override
+        public void send(BufferedWriter out) {
+            try {
+                JSONObject jsonOut = myUniverse.toJSON();
+                jsonOut.write(out);
+                out.write("\n");
+                out.flush();
+            } catch (IOException | JSONException e) {
+                System.out.println("Couldn't flush: " + e.getMessage());
+                controller.updateConnections(this, false);
+                this.interrupt();
+            }
+        }
+
+        @Override
+        public void receive(String in) {
+            try {
+                System.out.println("Server received data: " + in);
+                myUniverse.getPlayer().fromJSON(new JSONObject(in));
+            } catch (IllegalArgumentException e) {
+                System.out.println("Bad formatted json in: " + e);
+            }
+        }
+    }
 }

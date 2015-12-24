@@ -5,7 +5,7 @@ import javax.swing.*;
 public class MainFrame {
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Agar Bs");
+        JFrame frame = new JFrame("AgarPajc");
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.add(GameController.getInstance());
         frame.setMinimumSize(GameController.getInstance().getMinimumSize());

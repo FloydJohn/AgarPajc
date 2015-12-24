@@ -9,10 +9,6 @@ public class StartDialog extends JDialog {
     private JButton create = new JButton("Create"), join = new JButton("Join");
     private boolean isServer = false;
 
-    public boolean isServer() {
-        return isServer;
-    }
-
     public StartDialog() {
         super((JFrame)null, "Start Options", true);
 
@@ -43,7 +39,19 @@ public class StartDialog extends JDialog {
         pack();
     }
 
-    private void closeDialog(boolean isServer) {
+    public boolean isServer() {
+        return isServer;
+    }
+
+    public String getPlayerName() {
+        return name.getText();
+    }
+
+    public String getIpAddress() {
+        return ipAddr.getText();
+    }
+
+    public void closeDialog(boolean isServer) {
         this.isServer = isServer;
         this.setVisible(false);
     }
