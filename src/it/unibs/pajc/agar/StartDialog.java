@@ -2,6 +2,7 @@ package it.unibs.pajc.agar;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.prefs.Preferences;
 
 public class StartDialog extends JDialog {
 
@@ -15,10 +16,11 @@ public class StartDialog extends JDialog {
         create.addActionListener(e -> closeDialog(true));
         join.addActionListener(e -> closeDialog(false));
 
+        Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
         name.setColumns(20);
-        name.setText("DefaultName");
+        name.setText(prefs.get("UserName", "Default"));
         ipAddr.setColumns(20);
-        ipAddr.setText("127.0.0.1");
+        ipAddr.setText(prefs.get("IpAddress", "127.0.0.1"));
         create.getSize();
         setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -54,5 +56,8 @@ public class StartDialog extends JDialog {
     public void closeDialog(boolean isServer) {
         this.isServer = isServer;
         this.setVisible(false);
+        Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
+        prefs.put("UserName", getPlayerName());
+        prefs.put("IpAddress", getIpAddress());
     }
 }
