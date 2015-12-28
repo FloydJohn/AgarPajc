@@ -2,6 +2,7 @@ package it.unibs.pajc.agar.network;
 
 import it.unibs.pajc.agar.universe.Universe;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 
 public class NetworkController extends Thread {
 
+    public static final int SEND_DELAY = 20;
     private static NetworkController instance;
     private Universe universe;
     private ConnectionState currentState = ConnectionState.LOGIN;
@@ -43,8 +45,9 @@ public class NetworkController extends Thread {
 
     @Override
     public void run() {
-        //noinspection InfiniteLoopStatement
-        while (true) {
+        new Timer(SEND_DELAY, e -> sendUpdate());
+
+        while (currentState != ConnectionState.EXIT) {
             try (ServerSocket serverSocket = new ServerSocket(port)){
                 currentState = ConnectionState.CONNECTED;
                 NetworkConnection.Server newConnection = new NetworkConnection.Server(universe, serverSocket.accept(), this);
@@ -52,6 +55,7 @@ public class NetworkController extends Thread {
                 updateConnections(newConnection, true);
             } catch (IOException e) {
                 System.out.println("Could not open connection: "+e);
+                currentState = ConnectionState.EXIT;
             }
         }
     }
@@ -73,7 +77,13 @@ public class NetworkController extends Thread {
                 this.interrupt();
             }
         }
+    }
 
+    public synchronized void sendUpdate() {
+        for (NetworkConnection c : connections) {
+            if (isServer) c.send(universe.toJSON());
+            else c.send(null);
+        }
     }
 
     public enum ConnectionState {

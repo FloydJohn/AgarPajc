@@ -15,11 +15,13 @@ public class Player {
     private Color color;
     private Universe universe;
     private String name;
+    private GameObject.State currentState = GameObject.State.ADDED;
 
     public Player(String name, boolean isReal, Point2D.Float position, int mass, Color color, Universe universe) {
         this.isReal = isReal;
         this.color = color;
         this.name = name;
+
         this.universe = universe;
         pieces.add(new Piece(null, isReal, position, mass, color, universe));
     }
@@ -28,6 +30,14 @@ public class Player {
         this.universe = universe;
         isReal = false;
         fromJSON(playerJson);
+    }
+
+    public GameObject.State getCurrentState() {
+        return currentState;
+    }
+
+    public void setCurrentState(GameObject.State currentState) {
+        this.currentState = currentState;
     }
 
     public void setTarget(Point2D.Float target) {

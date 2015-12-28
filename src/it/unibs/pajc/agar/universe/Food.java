@@ -7,7 +7,6 @@ import java.awt.geom.Point2D;
 
 public class Food extends CircleObject{
 
-    private State currentState = State.TO_ADD;
     private int id;
 
     public Food(Universe universe, Point2D.Float pos, int id) {
@@ -17,14 +16,6 @@ public class Food extends CircleObject{
 
     public int getId() {
         return id;
-    }
-
-    public State getCurrentState() {
-        return currentState;
-    }
-
-    public void setCurrentState(State currentState) {
-        this.currentState = currentState;
     }
 
     @Override
@@ -42,7 +33,4 @@ public class Food extends CircleObject{
         return super.toJSON().put("id", id);
     }
 
-    public enum State {
-        TO_ADD, TO_REMOVE, ADDED, REMOVED
-    }
 }

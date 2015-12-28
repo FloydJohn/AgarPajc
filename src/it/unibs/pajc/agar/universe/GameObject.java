@@ -18,6 +18,7 @@ public abstract class GameObject {
     protected Universe universe;
 
     private AffineTransform shapeTransform = new AffineTransform();
+    private State currentState = State.TO_ADD;
 
     public GameObject(Point2D.Float position, int mass, Shape shape, Color color, Universe universe) {
         this.shape = shape;
@@ -112,6 +113,14 @@ public abstract class GameObject {
                 position.getY() <= bottomLeftVertex.getY() + size.getHeight();
     }
 
+    public State getCurrentState() {
+        return currentState;
+    }
+
+    public void setCurrentState(State currentState) {
+        this.currentState = currentState;
+    }
+
     public int getMass() {
         return mass;
     }
@@ -140,5 +149,9 @@ public abstract class GameObject {
         } catch (JSONException e) {
             throw new IllegalArgumentException("Couldn't parse GameObject", e);
         }
+    }
+
+    public enum State {
+        TO_ADD, TO_REMOVE, ADDED, REMOVED
     }
 }
