@@ -30,6 +30,7 @@ public class NetworkController extends Thread {
         this.port = port;
         this.universe = universe;
         this.isServer = isServer;
+        new Timer(SEND_DELAY, e -> sendUpdate()).start();
         if (isServer) this.start();
         else {
             try {
@@ -45,7 +46,6 @@ public class NetworkController extends Thread {
 
     @Override
     public void run() {
-        new Timer(SEND_DELAY, e -> sendUpdate());
 
         while (currentState != ConnectionState.EXIT) {
             try (ServerSocket serverSocket = new ServerSocket(port)){
