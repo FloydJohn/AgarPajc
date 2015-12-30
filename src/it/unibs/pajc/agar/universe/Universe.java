@@ -21,7 +21,7 @@ public class Universe {
 
     public Universe(String playerName, Dimension universeDimension) {
         this.universeDimension = universeDimension;
-        player = new Player(playerName, true, new Point2D.Float(50,50), 30, Color.RED, this);
+        player = new Player(playerName, true, new Point2D.Float(20, 50), 30, new Random().nextInt(Player.possibleColors.length), this);
         players.put(playerName, player);
     }
 
