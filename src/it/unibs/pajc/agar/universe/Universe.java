@@ -116,6 +116,7 @@ public class Universe {
             for (Object element : playersJson) {
                 JSONObject playerJson = (JSONObject) element;
                 Player selected = getPlayer(playerJson.getString("n"));
+                if (selected == player) continue; //Skips update if is this player
                 if (selected == null) updatePlayer(playerJson, true);
                 else selected.fromJSON(playerJson);
             }
