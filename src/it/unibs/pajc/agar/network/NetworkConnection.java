@@ -4,7 +4,6 @@ import it.unibs.pajc.agar.universe.GameObject;
 import it.unibs.pajc.agar.universe.Player;
 import it.unibs.pajc.agar.universe.Universe;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -64,7 +63,7 @@ public abstract class NetworkConnection extends Thread{
             out.write("\n");
             out.flush();
             //System.out.println("SENT: " + json);
-        } catch (IOException | JSONException e) {
+        } catch (Exception e) {
             System.out.println("Couldn't flush: " + e.getMessage());
             controller.updateConnections(this, false);
             this.interrupt();

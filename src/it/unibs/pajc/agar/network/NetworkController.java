@@ -7,14 +7,15 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 
 public class NetworkController extends Thread {
 
     public static final int SEND_DELAY = 20;
     private static NetworkController instance;
+    private final ArrayList<NetworkConnection> connections = new ArrayList<>();
     private Universe universe;
     private ConnectionState currentState = ConnectionState.LOGIN;
-    private ArrayList<NetworkConnection> connections = new ArrayList<>();
     private int port;
     private boolean isServer;
 
@@ -67,22 +68,30 @@ public class NetworkController extends Thread {
     public synchronized void updateConnections(NetworkConnection connection, boolean toAdd) {
         if (toAdd) {
             System.out.println("Successfully added Connection!");
-            connections.add(connection);
+            synchronized (connections) {
+                connections.add(connection);
+            }
             connection.start();
         } else {
             connection.interrupt();
-            connections.remove(connection);
-            if (connections.size() == 0 && !isServer) {
-                currentState = ConnectionState.EXIT;
-                this.interrupt();
+            synchronized (connections) {
+                connections.remove(connection);
+                if (connections.size() == 0 && !isServer) {
+                    currentState = ConnectionState.EXIT;
+                    this.interrupt();
+                }
             }
-        }
+
+            }
     }
 
     public synchronized void sendUpdate() {
-        for (NetworkConnection c : connections) {
-            if (isServer) c.send(universe.toJSON());
-            else c.send(null);
+        try {
+            for (NetworkConnection c : connections) {
+                if (isServer) c.send(universe.toJSON());
+                else c.send(null);
+            }
+        } catch (ConcurrentModificationException ignored) {
         }
     }
 
