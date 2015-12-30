@@ -89,7 +89,7 @@ public class Player {
     public void fromJSON(JSONObject in) throws IllegalArgumentException {
         try {
             name = in.getString("n");
-            //TODO Color
+            color = Color.GREEN;//TODO Color
             JSONArray piecesJson = in.getJSONArray("i");
             for (int i = 0; i < piecesJson.length(); i++) {
                 if (pieces.size() > i) {
