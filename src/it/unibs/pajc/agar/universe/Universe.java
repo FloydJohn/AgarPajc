@@ -6,15 +6,15 @@ import org.json.JSONObject;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Universe {
 
     private final Random generator = new Random();
-    private HashMap<String, Player> players = new HashMap<>();
-    private HashMap<Integer, Food> foods = new HashMap<>();
+    private ConcurrentHashMap<String, Player> players = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Integer, Food> foods = new ConcurrentHashMap<>();
     private int currentFoodId = 0;
     private Dimension universeDimension;
     private Player player;
@@ -39,11 +39,11 @@ public class Universe {
         return universeDimension;
     }
 
-    public HashMap<Integer, Food> getFoods() {
+    public ConcurrentHashMap<Integer, Food> getFoods() {
         return foods;
     }
 
-    public HashMap<String, Player> getPlayers() {
+    public ConcurrentHashMap<String, Player> getPlayers() {
         return players;
     }
 
@@ -57,7 +57,7 @@ public class Universe {
             }
             if (player.intersects(f)) {
                 player.eat(f);
-                iterator.remove();
+                f.setCurrentState(GameObject.State.TO_REMOVE);
             }
         }
     }
@@ -132,8 +132,9 @@ public class Universe {
             //Parse Added
             if (jsonObject.has("a"))
                 for (Object foodAdded : jsonObject.getJSONArray("a")) {
-                    Food newFood = new Food(this, new Point2D.Float(), -1);
-                    newFood.fromJSON((JSONObject) foodAdded);
+                    JSONObject currentFood = (JSONObject) foodAdded;
+                    Food newFood = new Food(this, new Point2D.Float(), currentFood.getInt("id"));
+                    newFood.fromJSON(currentFood);
                     foods.put(newFood.getId(), newFood);
                 }
         } catch (JSONException e) {

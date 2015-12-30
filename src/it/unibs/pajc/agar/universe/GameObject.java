@@ -142,7 +142,7 @@ public abstract class GameObject {
 
     public void fromJSON(JSONObject in) throws IllegalArgumentException {
         try {
-            position.setLocation(in.getInt("x"), in.getInt("y"));
+            setPosition(in.getInt("x"), in.getInt("y"));
             setMass(in.getInt("m"));
         } catch (JSONException e) {
             throw new IllegalArgumentException("Couldn't parse GameObject", e);

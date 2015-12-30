@@ -11,7 +11,6 @@ import java.util.ArrayList;
 public class Player {
 
     public static final Color[] possibleColors = new Color[]{Color.CYAN, Color.BLUE, Color.BLACK, Color.RED, Color.PINK, Color.YELLOW, Color.GREEN};
-    private final boolean isReal;
     private ArrayList<Piece> pieces = new ArrayList<>();
     private int color;
     private Universe universe;
@@ -19,7 +18,6 @@ public class Player {
     private GameObject.State currentState = GameObject.State.ADDED;
 
     public Player(String name, boolean isReal, Point2D.Float position, int mass, int color, Universe universe) {
-        this.isReal = isReal;
         this.color = color;
         this.name = name;
 
@@ -29,7 +27,6 @@ public class Player {
 
     public Player(Universe universe, JSONObject playerJson) {
         this.universe = universe;
-        isReal = false;
         fromJSON(playerJson);
     }
 
