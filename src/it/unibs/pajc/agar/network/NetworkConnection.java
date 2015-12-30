@@ -63,7 +63,7 @@ public abstract class NetworkConnection extends Thread{
             json.write(out);
             out.write("\n");
             out.flush();
-            System.out.println("Written: " + json);
+            System.out.println("SENT: " + json);
         } catch (IOException | JSONException e) {
             System.out.println("Couldn't flush: " + e.getMessage());
             controller.updateConnections(this, false);
@@ -92,7 +92,7 @@ public abstract class NetworkConnection extends Thread{
         @Override
         public void receive(String in) {
             try {
-                System.out.println("Client received data: " + in);
+                System.out.println("CRCV: " + in);
                 myUniverse.fromJSON(in);
             } catch (IllegalArgumentException e) {
                 System.out.println("Bad formatted json in: " + e);
@@ -109,7 +109,7 @@ public abstract class NetworkConnection extends Thread{
         @Override
         public void receive(String in) {
             try {
-                System.out.println("Server received data: " + in);
+                System.out.println("SRCV: " + in);
                 JSONObject inJson = new JSONObject(in);
                 Player thisPlayer = myUniverse.getPlayer(inJson.getString("n"));
                 if (thisPlayer == null) myUniverse.updatePlayer(inJson, true);
