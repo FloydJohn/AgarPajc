@@ -61,9 +61,9 @@ public abstract class NetworkConnection extends Thread{
     protected void send(JSONObject json) {
         try {
             json.write(out);
-            System.out.println("Written: " + json);
             out.write("\n");
             out.flush();
+            System.out.println("Written: " + json);
         } catch (IOException | JSONException e) {
             System.out.println("Couldn't flush: " + e.getMessage());
             controller.updateConnections(this, false);

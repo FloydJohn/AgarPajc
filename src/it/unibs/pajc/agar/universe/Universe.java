@@ -86,7 +86,6 @@ public class Universe {
                     removedPlayers.put(p.toJSON());
                     break;
             }
-            playersJson.put(p.toJSON());
         }
         for (Food f : foods.values()) {
             switch (f.getCurrentState()) {

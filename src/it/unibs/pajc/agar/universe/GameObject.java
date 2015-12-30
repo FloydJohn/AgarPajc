@@ -82,12 +82,10 @@ public abstract class GameObject {
     }
 
     private void moveToTarget() {
-        //System.out.println("Moving to target "+target+" from position "+position);
 
         if (target.distance(position) < speed) {
             position.setLocation(target);
             target = null;
-            System.out.println("DESTINATION REACHED!!!");
             return;
         }
 
