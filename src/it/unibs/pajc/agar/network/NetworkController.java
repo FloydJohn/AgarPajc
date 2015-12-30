@@ -51,7 +51,7 @@ public class NetworkController extends Thread {
         while (currentState != ConnectionState.EXIT) {
             try (ServerSocket serverSocket = new ServerSocket(port)){
                 currentState = ConnectionState.CONNECTED;
-                NetworkConnection.Server newConnection = new NetworkConnection.Server(universe, serverSocket.accept(), this);
+                NetworkConnection.Client.Server newConnection = new NetworkConnection.Client.Server(universe, serverSocket.accept(), this);
                 System.out.println("Server received client request! Adding connection...");
                 updateConnections(newConnection, true);
             } catch (IOException e) {
@@ -88,7 +88,7 @@ public class NetworkController extends Thread {
     public synchronized void sendUpdate() {
         try {
             for (NetworkConnection c : connections) {
-                if (isServer) c.send(universe.toJSON());
+                if (isServer) c.send(universe.toJSON(((NetworkConnection.Server) c).getPlayerName()));
                 else c.send(null);
             }
         } catch (ConcurrentModificationException ignored) {

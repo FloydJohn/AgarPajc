@@ -101,8 +101,14 @@ public abstract class NetworkConnection extends Thread{
 
     public static class Server extends NetworkConnection {
 
+        protected String playerName = "NoName";
+
         public Server(Universe universe, Socket socket, NetworkController networkController) {
             super(universe, socket, networkController);
+        }
+
+        public String getPlayerName() {
+            return playerName;
         }
 
         @Override
@@ -113,9 +119,11 @@ public abstract class NetworkConnection extends Thread{
                 Player thisPlayer = myUniverse.getPlayer(inJson.getString("n"));
                 if (thisPlayer == null) myUniverse.updatePlayer(inJson, true);
                 else thisPlayer.fromJSON(new JSONObject(in));
+                playerName = inJson.getString("n");
             } catch (IllegalArgumentException e) {
                 System.out.println("Bad formatted json in: " + e);
             }
         }
     }
+
 }

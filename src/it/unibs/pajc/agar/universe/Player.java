@@ -10,20 +10,21 @@ import java.util.ArrayList;
 
 public class Player {
 
+    public static final Color[] possibleColors = new Color[]{Color.CYAN, Color.BLUE, Color.BLACK, Color.RED, Color.PINK, Color.YELLOW, Color.GREEN};
     private final boolean isReal;
     private ArrayList<Piece> pieces = new ArrayList<>();
-    private Color color;
+    private int color;
     private Universe universe;
     private String name;
     private GameObject.State currentState = GameObject.State.ADDED;
 
-    public Player(String name, boolean isReal, Point2D.Float position, int mass, Color color, Universe universe) {
+    public Player(String name, boolean isReal, Point2D.Float position, int mass, int color, Universe universe) {
         this.isReal = isReal;
         this.color = color;
         this.name = name;
 
         this.universe = universe;
-        pieces.add(new Piece(null, isReal, position, mass, color, universe));
+        pieces.add(new Piece(null, isReal, position, mass, getColor(), universe));
     }
 
     public Player(Universe universe, JSONObject playerJson) {
@@ -49,7 +50,7 @@ public class Player {
     }
 
     public Color getColor() {
-        return color;
+        return possibleColors[color];
     }
 
     public void update() {
@@ -79,7 +80,7 @@ public class Player {
     public JSONObject toJSON() {
         JSONObject out = new JSONObject();
         out.put("n", name);
-        out.put("c", 1);//TODO Colors
+        out.put("c", color);
         JSONArray piecesJson = new JSONArray();
         for (Piece p : pieces) piecesJson.put(p.toJSON());
         out.put("i", piecesJson);
@@ -89,13 +90,13 @@ public class Player {
     public void fromJSON(JSONObject in) throws IllegalArgumentException {
         try {
             name = in.getString("n");
-            color = Color.GREEN;//TODO Color
+            color = in.getInt("c");
             JSONArray piecesJson = in.getJSONArray("i");
             for (int i = 0; i < piecesJson.length(); i++) {
                 if (pieces.size() > i) {
                     pieces.get(i).fromJSON((JSONObject) piecesJson.get(i));
                 } else {
-                    Piece newPiece = new Piece(null, false, new Point2D.Float(), 0, this.color, universe);
+                    Piece newPiece = new Piece(null, false, new Point2D.Float(), 0, getColor(), universe);
                     newPiece.fromJSON((JSONObject) piecesJson.get(i));
                     pieces.add(newPiece);
                 }

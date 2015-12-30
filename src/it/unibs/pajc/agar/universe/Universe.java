@@ -21,7 +21,7 @@ public class Universe {
 
     public Universe(String playerName, Dimension universeDimension) {
         this.universeDimension = universeDimension;
-        player = new Player(playerName, true, new Point2D.Float(50,50), 30, Color.RED, this);
+        player = new Player(playerName, true, new Point2D.Float(20, 50), 30, new Random().nextInt(Player.possibleColors.length), this);
         players.put(playerName, player);
     }
 
@@ -67,13 +67,14 @@ public class Universe {
     }
 
     //Server
-    public JSONObject toJSON() {
+    public JSONObject toJSON(String playerName) {
         JSONArray playersJson = new JSONArray(),
                 eatenFood = new JSONArray(),
                 addedFood = new JSONArray(),
                 removedPlayers = new JSONArray();
 
         for (Player p : players.values()) {
+            if (playerName.equals(p.getName())) continue; //Don't send updates back
             switch (p.getCurrentState()) {
                 case TO_ADD:
                     p.setCurrentState(GameObject.State.ADDED);
