@@ -73,6 +73,7 @@ public class NetworkController extends Thread {
         } else {
             connection.interrupt();
             connections.remove(connection);
+            universe.removePlayer(((NetworkConnection.Server) connection).getPlayerName());
             if (connections.size() == 0 && !isServer) {
                 currentState = ConnectionState.EXIT;
                 this.interrupt();

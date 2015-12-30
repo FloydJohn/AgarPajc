@@ -158,4 +158,8 @@ public class Universe {
             System.out.println("Whoa added player! His name is " + newPlayer.getName());
         } else players.remove(inJson.getString("n"));
     }
+
+    public void removePlayer(String name) {
+        players.remove(name);
+    }
 }
