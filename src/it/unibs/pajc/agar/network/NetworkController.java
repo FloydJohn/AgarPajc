@@ -68,20 +68,15 @@ public class NetworkController extends Thread {
     public synchronized void updateConnections(NetworkConnection connection, boolean toAdd) {
         if (toAdd) {
             System.out.println("Successfully added Connection!");
-            synchronized (connections) {
-                connections.add(connection);
-            }
+            connections.add(connection);
             connection.start();
         } else {
             connection.interrupt();
-            synchronized (connections) {
-                connections.remove(connection);
-                if (connections.size() == 0 && !isServer) {
-                    currentState = ConnectionState.EXIT;
-                    this.interrupt();
-                }
+            connections.remove(connection);
+            if (connections.size() == 0 && !isServer) {
+                currentState = ConnectionState.EXIT;
+                this.interrupt();
             }
-
             }
     }
 

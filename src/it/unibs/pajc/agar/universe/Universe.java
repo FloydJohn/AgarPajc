@@ -48,7 +48,7 @@ public class Universe {
     }
 
     public void update() {
-        players.values().forEach(Player::update);
+        player.update();
         for (Iterator<Food> iterator = foods.values().iterator(); iterator.hasNext(); ) {
             Food f = iterator.next();
             if (f.getCurrentState() == GameObject.State.REMOVED) {
