@@ -10,7 +10,7 @@ import java.util.ArrayList;
 
 public class Player {
 
-    public static final Color[] possibleColors = new Color[]{Color.CYAN, Color.BLUE, Color.BLACK, Color.RED, Color.PINK, Color.YELLOW, Color.GREEN};
+    public static final Color[] possibleColors = new Color[]{Color.CYAN, Color.BLUE, Color.BLACK, Color.RED, Color.GREEN};
     private ArrayList<Piece> pieces = new ArrayList<>();
     private int color;
     private Universe universe;
@@ -113,6 +113,22 @@ public class Player {
         for (Piece p : pieces)
             if (p.getShape(true).contains(point)) return true;
         return false;
+    }
+
+    public void eat(int mass) {
+        pieces.get(0).setMass(pieces.get(0).getMass() + mass);
+    }
+
+    public int getMass() {
+        return pieces.get(0).getMass();
+    }
+
+    public Point2D.Float getCenter() {
+        return pieces.get(0).getCenter();
+    }
+
+    public float getRadius() {
+        return pieces.get(0).getRadius();
     }
 
     public class Piece extends CircleObject{

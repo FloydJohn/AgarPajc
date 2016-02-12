@@ -33,6 +33,9 @@ public class Universe {
 
             foods.put(currentFoodId, new Food(this, pos, currentFoodId++));
         }
+        Food bigFood = new Food(this, new Point2D.Float(1000, 1000), currentFoodId++);
+        bigFood.setMass(150);
+        foods.put(bigFood.getId(), bigFood);
     }
 
     public Dimension getBounds() {
@@ -51,13 +54,19 @@ public class Universe {
         player.update();
         for (Iterator<Food> iterator = foods.values().iterator(); iterator.hasNext(); ) {
             Food f = iterator.next();
-            if (f.getCurrentState() == GameObject.State.REMOVED) {
-                iterator.remove();
-                continue;
-            }
-            if (player.intersects(f)) {
-                player.eat(f);
-                f.setCurrentState(GameObject.State.TO_REMOVE);
+            switch (f.getCurrentState()) {
+                case TO_ADD:
+                case ADDED:
+                    if (player.intersects(f)) {
+                        player.eat(f);
+                        f.setCurrentState(Food.State.TO_REMOVE);
+                    }
+                    break;
+                case TO_REMOVE:
+                    break;
+                case REMOVED:
+                    iterator.remove();
+                    break;
             }
         }
     }
@@ -92,11 +101,11 @@ public class Universe {
             switch (f.getCurrentState()) {
                 case TO_ADD:
                     addedFood.put(f.toJSON());
-                    f.setCurrentState(GameObject.State.ADDED);
+                    f.setCurrentState(Food.State.ADDED);
                     break;
                 case TO_REMOVE:
                     eatenFood.put(f.toJSON());
-                    f.setCurrentState(GameObject.State.REMOVED);
+                    f.setCurrentState(Food.State.REMOVED);
                     break;
             }
         }

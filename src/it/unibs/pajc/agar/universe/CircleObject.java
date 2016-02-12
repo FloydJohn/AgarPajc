@@ -8,6 +8,11 @@ public abstract class CircleObject extends GameObject {
 
     private Point2D.Float center;
 
+    public CircleObject(Point2D.Float position, int mass, Color color, Universe universe) {
+        super(position, mass, null, color, universe);
+        generateShape();
+    }
+
     public Point2D.Float getCenter() {
         return center;
     }
@@ -16,13 +21,8 @@ public abstract class CircleObject extends GameObject {
     public void setPosition(float x, float y) {
         super.setPosition(x, y);
         if (center == null) center = new Point2D.Float();
-        center.x = (float) (getPosition().x + getRadius());
-        center.y = (float) (getPosition().y + getShape(false).getBounds().getHeight()/2);
-    }
-
-    public CircleObject(Point2D.Float position, int mass, Color color, Universe universe) {
-        super(position, mass, null, color, universe);
-        generateShape();
+        center.x = getPosition().x + getRadius();
+        center.y = getPosition().y + getRadius();
     }
 
     @Override
@@ -47,10 +47,10 @@ public abstract class CircleObject extends GameObject {
     }
 
     public boolean intersects(CircleObject otherObject) {
-        return getCenter().distance(otherObject.getCenter()) < getRadius() + otherObject.getRadius();
+        return getCenter().distance(otherObject.getCenter()) < (getRadius() + otherObject.getRadius()) / 2;
     }
 
-    private double getRadius() {
-        return getShape(false).getBounds().getWidth()/2;
+    public float getRadius() {
+        return (float) (getShape(false).getBounds().getWidth() / 2);
     }
 }

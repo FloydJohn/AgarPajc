@@ -12,15 +12,11 @@ public class Food extends CircleObject{
     public Food(Universe universe, Point2D.Float pos, int id) {
         super(pos, 10, Color.GREEN, universe);
         this.id = id;
+        this.mass = 1;
     }
 
     public int getId() {
         return id;
-    }
-
-    @Override
-    public int getMass() {
-        return 1;
     }
 
     @Override

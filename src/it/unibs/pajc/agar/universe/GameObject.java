@@ -15,7 +15,7 @@ public abstract class GameObject {
     protected Color color;
     protected float speed = 0f;
     protected Point2D.Float target;
-    protected Universe universe;
+    protected Dimension bounds;
 
     private AffineTransform shapeTransform = new AffineTransform();
     private State currentState = State.TO_ADD;
@@ -26,7 +26,7 @@ public abstract class GameObject {
         this.position = new Point2D.Float();
         setPosition(position.x, position.y);
         this.color = color;
-        this.universe = universe;
+        this.bounds = universe.getBounds();
         this.target = (Point2D.Float) this.position.clone();
     }
 
@@ -98,17 +98,13 @@ public abstract class GameObject {
 
     private void move(double x, double y) {
         setPosition(
-                (float)Math.max(0, Math.min(x, universe.getBounds().width)),
-                (float)Math.max(0, Math.min(y, universe.getBounds().height))
+                (float) Math.max(0, Math.min(x, bounds.width)),
+                (float) Math.max(0, Math.min(y, bounds.height))
         );
     }
 
-    public boolean isInside(Point2D.Float bottomLeftVertex, Dimension size) {
-
-        return position.getX() >= bottomLeftVertex.getX() &&
-                position.getX() <= bottomLeftVertex.getX() + size.getWidth() &&
-                position.getY() >= bottomLeftVertex.getY() &&
-                position.getY() <= bottomLeftVertex.getY() + size.getHeight();
+    public boolean isInside(Rectangle viewWindow) {
+        return getShape(true).intersects(viewWindow);
     }
 
     public State getCurrentState() {
@@ -125,7 +121,7 @@ public abstract class GameObject {
 
     public void setMass(int mass) {
         this.mass = mass;
-        setSpeed((float) (4 - 0.001 * (float) mass));
+        setSpeed(Math.max(0.1f, (float) (4 - 0.001 * (float) mass)));
     }
 
     public void eat(GameObject object) {
@@ -148,6 +144,7 @@ public abstract class GameObject {
             throw new IllegalArgumentException("Couldn't parse GameObject", e);
         }
     }
+
 
     public enum State {
         TO_ADD, TO_REMOVE, ADDED, REMOVED
