@@ -18,6 +18,7 @@ public class Universe {
     private int currentFoodId = 0;
     private Dimension universeDimension;
     private Player player;
+    private JSONObject jsonData = new JSONObject();
 
     public Universe(String playerName, Dimension universeDimension) {
         this.universeDimension = universeDimension;
@@ -69,6 +70,7 @@ public class Universe {
                     break;
             }
         }
+        jsonData = toJSON();
     }
 
     public Player getPlayer() {
@@ -76,44 +78,12 @@ public class Universe {
     }
 
     //Server
-    public JSONObject toJSON(String playerName) {
-        JSONArray playersJson = new JSONArray(),
-                eatenFood = new JSONArray(),
-                addedFood = new JSONArray(),
-                removedPlayers = new JSONArray();
-
-        for (Player p : players.values()) {
-            if (playerName.equals(p.getName())) continue; //Don't send updates back
-            switch (p.getCurrentState()) {
-                case TO_ADD:
-                    p.setCurrentState(GameObject.State.ADDED);
-                case ADDED:
-                    playersJson.put(p.toJSON());
-                    break;
-                case TO_REMOVE:
-                    p.setCurrentState(GameObject.State.REMOVED);
-                case REMOVED:
-                    removedPlayers.put(p.toJSON());
-                    break;
-            }
-        }
-        for (Food f : foods.values()) {
-            switch (f.getCurrentState()) {
-                case TO_ADD:
-                    addedFood.put(f.toJSON());
-                    f.setCurrentState(Food.State.ADDED);
-                    break;
-                case TO_REMOVE:
-                    eatenFood.put(f.toJSON());
-                    f.setCurrentState(Food.State.REMOVED);
-                    break;
-            }
-        }
-
+    public JSONObject toJSON() {
+        JSONArray playersJson = new JSONArray(), foodJson = new JSONArray();
+        for (Player p : players.values()) playersJson.put(p.toJSON());
+        for (Food f : foods.values()) foodJson.put(f.toJSON());
         JSONObject out = new JSONObject().put("p", playersJson);
-        if (eatenFood.length() > 0) out.put("e", eatenFood);
-        if (addedFood.length() > 0) out.put("a", addedFood);
-        if (removedPlayers.length() > 0) out.put("r", removedPlayers);
+        out.put("f", foodJson);
         return out;
     }
 
@@ -170,5 +140,13 @@ public class Universe {
 
     public void removePlayer(String name) {
         players.remove(name);
+    }
+
+    public JSONObject getJson() {
+        return jsonData;
+    }
+
+    public int getCurrentFoodId() {
+        return currentFoodId;
     }
 }

@@ -30,14 +30,6 @@ public class Player {
         fromJSON(playerJson);
     }
 
-    public GameObject.State getCurrentState() {
-        return currentState;
-    }
-
-    public void setCurrentState(GameObject.State currentState) {
-        this.currentState = currentState;
-    }
-
     public void setTarget(Point2D.Float target) {
         pieces.get(0).setTarget(target);
     }
@@ -52,14 +44,6 @@ public class Player {
 
     public void update() {
         pieces.forEach(Piece::update);
-    }
-
-    public Point2D.Float getPosition() {
-        return pieces.get(0).getPosition();
-    }
-
-    public Rectangle getDimension() {
-        return pieces.get(0).getShape(false).getBounds();
     }
 
     public boolean intersects(CircleObject circleObject) {
@@ -117,10 +101,6 @@ public class Player {
 
     public void eat(int mass) {
         pieces.get(0).setMass(pieces.get(0).getMass() + mass);
-    }
-
-    public int getMass() {
-        return pieces.get(0).getMass();
     }
 
     public Point2D.Float getCenter() {

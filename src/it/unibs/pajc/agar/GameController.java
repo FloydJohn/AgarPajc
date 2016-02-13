@@ -54,10 +54,10 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
         switch (NetworkController.getInstance().getCurrentState()) {
             case CONNECTED:
-                paintGame(g);
+                gameLoop(g);
                 break;
             case LOGIN:
-                paintLogin(g);
+                loginLoop(g);
                 break;
             case DEAD:
                 System.exit(1);
@@ -65,7 +65,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         }
     }
 
-    private void paintLogin(Graphics2D g) {
+    private void loginLoop(Graphics2D g) {
         clearScreen(g, Color.BLACK);
         g.setFont(loginFont);
         g.setColor(Color.WHITE);
@@ -76,7 +76,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         g.drawString(CONNECTING, x, y);
     }
 
-    private void paintGame(Graphics2D g) {
+    private void gameLoop(Graphics2D g) {
         this.setSize(800, 600);
         oldTransform = g.getTransform();
         updateViewWindow();
@@ -90,10 +90,11 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         if ((mouse.getX() != 0 || mouse.getY() != 0) && !universe.getPlayer().isInside(mouse)) {
             universe.getPlayer().setTarget(mouse);
         } else universe.getPlayer().setTarget(null);
+
         universe.update();
 
         for (Food f : universe.getFoods().values()) {
-            if (//!f.isInside(viewWindow) ||
+            if (//!f.isInside(viewWindow) ||//TODO Restore
                     f.getCurrentState().equals(GameObject.State.TO_REMOVE) ||
                             f.getCurrentState().equals(GameObject.State.REMOVED)) continue;
 

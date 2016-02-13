@@ -47,7 +47,6 @@ public class NetworkController extends Thread {
 
     @Override
     public void run() {
-
         while (currentState != ConnectionState.EXIT) {
             try (ServerSocket serverSocket = new ServerSocket(port)){
                 currentState = ConnectionState.CONNECTED;
@@ -83,10 +82,7 @@ public class NetworkController extends Thread {
 
     public synchronized void sendUpdate() {
         try {
-            for (NetworkConnection c : connections) {
-                if (isServer) c.send(universe.toJSON(((NetworkConnection.Server) c).getPlayerName()));
-                else c.send(null);
-            }
+            connections.forEach(NetworkConnection::send);
         } catch (ConcurrentModificationException ignored) {
         }
     }
