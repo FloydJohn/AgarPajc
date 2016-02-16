@@ -154,11 +154,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
     @Override
     public void keyTyped(KeyEvent e) {
-        switch (e.getKeyChar()) {
-            case 'm':
-                universe.getPlayer().eat(20);
-                break;
-        }
+
     }
 
     @Override
@@ -166,9 +162,15 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
     }
 
-    @Override
     public void keyReleased(KeyEvent e) {
-
+        switch (e.getKeyChar()) {
+            case 'm':
+                universe.getPlayer().eat(20);
+                break;
+            case 'a':
+                universe.generateRandomFood(1);
+                break;
+        }
     }
 
     @Override

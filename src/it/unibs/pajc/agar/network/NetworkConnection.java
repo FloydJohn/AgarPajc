@@ -8,7 +8,7 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.HashMap;
+import java.util.ArrayList;
 
 public abstract class NetworkConnection extends Thread{
 
@@ -65,7 +65,6 @@ public abstract class NetworkConnection extends Thread{
             json.write(out);
             out.write("\n");
             out.flush();
-            //System.out.println("SENT: " + json);
         } catch (Exception e) {
             System.out.println("Couldn't flush: " + e.getMessage());
             controller.updateConnections(this, false);
@@ -104,7 +103,7 @@ public abstract class NetworkConnection extends Thread{
     public static class Server extends NetworkConnection {
 
         private String playerName = "NoName";
-        private HashMap<Integer, Boolean> notifiedFood = new HashMap<>();
+        private ArrayList<Integer> notifiedFood = new ArrayList<>();
 
         public Server(Universe universe, Socket socket, NetworkController networkController) {
             super(universe, socket, networkController);
@@ -119,15 +118,33 @@ public abstract class NetworkConnection extends Thread{
             JSONArray foodJson = myUniverse.getJson().getJSONArray("f");
             JSONArray addedFood = new JSONArray();
             JSONArray removedFood = new JSONArray();
-            for (int i = 0; i < myUniverse.getCurrentFoodId(); i++) {
-                if (foodJson.opt(i) != null && notifiedFood.containsKey(i) ||
-                        foodJson.opt(i) == null && !notifiedFood.containsKey(i)) continue;
-                if (foodJson.opt(i) != null && !notifiedFood.containsKey(i)) addedFood.put(foodJson.get(i));
-                else if (foodJson.opt(i) == null && notifiedFood.containsKey(i)) removedFood.put(foodJson.get(i));
+            int universeIndex, notifiedIndex;
+            for (int id = 0; id < myUniverse.getCurrentFoodId(); id++) {
+                universeIndex = -1;
+                notifiedIndex = -1;
+                for (int i = 0; i < foodJson.length(); i++)
+                    if (foodJson.getJSONObject(i).getInt("id") == id)
+                        universeIndex = i;
+
+                for (int i = 0; i < notifiedFood.size(); i++)
+                    if (notifiedFood.get(i).equals(id))
+                        notifiedIndex = i;
+
+                if ((notifiedIndex >= 0 && universeIndex >= 0) || (notifiedIndex < 0 && universeIndex < 0)) continue;
+
+                if (universeIndex >= 0) {
+                    //Added
+                    addedFood.put(foodJson.getJSONObject(universeIndex));
+                    notifiedFood.add(id);
+                } else {
+                    //Removed
+                    removedFood.put(id);
+                    notifiedFood.remove(notifiedIndex);
+                }
             }
             JSONObject out = new JSONObject();
-            out.put("a", addedFood);
-            out.put("r", removedFood);
+            if (addedFood.length() > 0) out.put("a", addedFood);
+            if (removedFood.length() > 0) out.put("r", removedFood);
             out.put("p", myUniverse.getJson().get("p"));
             super.send(out);
         }

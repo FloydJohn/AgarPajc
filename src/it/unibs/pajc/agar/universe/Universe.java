@@ -34,9 +34,6 @@ public class Universe {
 
             foods.put(currentFoodId, new Food(this, pos, currentFoodId++));
         }
-        Food bigFood = new Food(this, new Point2D.Float(1000, 1000), currentFoodId++);
-        bigFood.setMass(150);
-        foods.put(bigFood.getId(), bigFood);
     }
 
     public Dimension getBounds() {
@@ -64,8 +61,8 @@ public class Universe {
                     }
                     break;
                 case TO_REMOVE:
-                    break;
                 case REMOVED:
+                    System.out.println("\n\nUNIVERSE GETTING RID OF FOOD ID " + f.getId() + "\n\n");
                     iterator.remove();
                     break;
             }
@@ -106,8 +103,8 @@ public class Universe {
                 for (Object element : removedJson) updatePlayer((JSONObject) element, false);
             }
             //Parse Eaten
-            if (jsonObject.has("e"))
-                eatFoods(jsonObject.getJSONArray("e"));
+            if (jsonObject.has("r"))
+                eatFoods(jsonObject.getJSONArray("r"));
             //Parse Added
             if (jsonObject.has("a"))
                 for (Object foodAdded : jsonObject.getJSONArray("a")) {
@@ -134,7 +131,6 @@ public class Universe {
         if (toAdd) {
             Player newPlayer = new Player(this, inJson);
             players.put(newPlayer.getName(), newPlayer);
-            System.out.println("Whoa added player! His name is " + newPlayer.getName());
         } else players.remove(inJson.getString("n"));
     }
 
