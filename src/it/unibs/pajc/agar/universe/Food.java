@@ -4,15 +4,16 @@ import org.json.JSONObject;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
+import java.util.Random;
 
 public class Food extends CircleObject{
 
+    public static final Color[] possibleColors = new Color[]{Color.CYAN, Color.BLUE, Color.RED, Color.GREEN, Color.PINK, Color.ORANGE};
     private static final int FOOD_SIZE = 10;
-
     private int id;
 
     public Food(Universe universe, Point2D.Float pos, int id) {
-        super(pos, FOOD_SIZE, Color.GREEN, universe);
+        super(pos, FOOD_SIZE, possibleColors[new Random().nextInt(possibleColors.length)], universe);
         this.id = id;
         this.mass = 1;
     }

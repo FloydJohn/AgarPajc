@@ -101,8 +101,6 @@ public class GameController extends JPanel implements KeyListener, MouseListener
             g.fill(f.getShape(true));
         }
 
-        g.drawRoundRect(500, 500, 100, 100, 10, 10);
-
         g.setFont(massFont);
         for (Player p : universe.getPlayers().values()) {
             g.setColor(p.getColor());
