@@ -7,12 +7,21 @@ import java.awt.geom.Point2D;
 
 public class Food extends CircleObject{
 
+    private static final int FOOD_SIZE = 10;
+
     private int id;
 
     public Food(Universe universe, Point2D.Float pos, int id) {
-        super(pos, 10, Color.GREEN, universe);
+        super(pos, FOOD_SIZE, Color.GREEN, universe);
         this.id = id;
         this.mass = 1;
+    }
+
+    public Food(Universe universe, JSONObject json) {
+        this(universe, new Point2D.Float(), -1);
+        super.fromJSON(json);
+        this.id = json.getInt("id");
+        generateShape(FOOD_SIZE);
     }
 
     public int getId() {

@@ -97,7 +97,6 @@ public class GameController extends JPanel implements KeyListener, MouseListener
             if (//!f.isInside(viewWindow) ||//TODO Restore
                     f.getCurrentState().equals(GameObject.State.TO_REMOVE) ||
                             f.getCurrentState().equals(GameObject.State.REMOVED)) continue;
-
             g.setColor(f.getColor());
             g.fill(f.getShape(true));
         }

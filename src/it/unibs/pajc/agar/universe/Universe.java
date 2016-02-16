@@ -62,7 +62,6 @@ public class Universe {
                     break;
                 case TO_REMOVE:
                 case REMOVED:
-                    System.out.println("\n\nUNIVERSE GETTING RID OF FOOD ID " + f.getId() + "\n\n");
                     iterator.remove();
                     break;
             }
@@ -97,22 +96,17 @@ public class Universe {
                 if (selected == null) updatePlayer(playerJson, true);
                 else selected.fromJSON(playerJson);
             }
-            //Parse removed
-            if (jsonObject.has("r")) {
-                JSONArray removedJson = jsonObject.getJSONArray("r");
-                for (Object element : removedJson) updatePlayer((JSONObject) element, false);
-            }
             //Parse Eaten
             if (jsonObject.has("r"))
                 eatFoods(jsonObject.getJSONArray("r"));
             //Parse Added
-            if (jsonObject.has("a"))
+            if (jsonObject.has("a")) {
                 for (Object foodAdded : jsonObject.getJSONArray("a")) {
                     JSONObject currentFood = (JSONObject) foodAdded;
-                    Food newFood = new Food(this, new Point2D.Float(), currentFood.getInt("id"));
-                    newFood.fromJSON(currentFood);
+                    Food newFood = new Food(this, currentFood);
                     foods.put(newFood.getId(), newFood);
                 }
+            }
         } catch (JSONException e) {
             throw new IllegalArgumentException("Could not parse Universe", e);
         }
@@ -120,7 +114,8 @@ public class Universe {
 
     public void eatFoods(JSONArray e) {
         for (Object foodEaten : e)
-            foods.remove(((JSONObject) foodEaten).getInt("id"));
+            //noinspection RedundantCast
+            foods.remove((Integer) foodEaten);
     }
 
     public Player getPlayer(String name) {

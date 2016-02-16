@@ -83,7 +83,7 @@ public abstract class NetworkConnection extends Thread{
             JSONObject json = myUniverse.getPlayer().toJSON();
             JSONArray eaten = new JSONArray();
             myUniverse.getFoods().values().stream().filter(f -> f.getCurrentState() == GameObject.State.TO_REMOVE).forEach(f -> {
-                eaten.put(f.toJSON());
+                eaten.put(f.getId());
                 f.setCurrentState(GameObject.State.REMOVED);
             });
             if (eaten.length() > 0) json.put("e", eaten);

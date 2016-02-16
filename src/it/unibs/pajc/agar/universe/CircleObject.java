@@ -32,7 +32,11 @@ public abstract class CircleObject extends GameObject {
     }
 
     protected void generateShape() {
-        super.setShape(new Ellipse2D.Float(0, 0, mass, mass));
+        generateShape(mass);
+    }
+
+    protected void generateShape(int radius) {
+        super.setShape(new Ellipse2D.Float(0, 0, radius, radius));
     }
 
     @Override
