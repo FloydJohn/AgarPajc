@@ -36,7 +36,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         this.setMinimumSize(new Dimension(800,600));
         new Timer(20, e -> this.repaint()).start();
         mouse = new Point2D.Float(0,0);
-        universe = new Universe(dialog.getPlayerName(), new Dimension(5000, 3000));
+        universe = new Universe(dialog.getPlayerName(), new Dimension(5000, 3000), dialog.isServer());
         viewWindow = new Rectangle(0, 0, 0, 0);
         updateViewWindow();
         if (dialog.isServer()) {
@@ -98,8 +98,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
         for (Food f : universe.getFoods().values()) {
             if (//!f.isInside(viewWindow) ||//TODO Restore
-                    f.getCurrentState().equals(GameObject.State.TO_REMOVE) ||
-                            f.getCurrentState().equals(GameObject.State.REMOVED)) continue;
+                    f.getCurrentState().equals(GameObject.State.REMOVING)) continue;
             g.setColor(f.getColor());
             g.fill(f.getShape(true));
             g.setColor(Color.YELLOW);

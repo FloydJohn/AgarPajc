@@ -51,7 +51,7 @@ public class NetworkController extends Thread {
             try (ServerSocket serverSocket = new ServerSocket(port)){
                 currentState = ConnectionState.CONNECTED;
                 NetworkConnection.Client.Server newConnection = new NetworkConnection.Client.Server(universe, serverSocket.accept(), this);
-                System.out.println("Server received client request! Adding connection...");
+                System.out.println("New player joined!");
                 updateConnections(newConnection, true);
             } catch (IOException e) {
                 System.out.println("Could not open connection: "+e);
@@ -66,7 +66,6 @@ public class NetworkController extends Thread {
 
     public synchronized void updateConnections(NetworkConnection connection, boolean toAdd) {
         if (toAdd) {
-            System.out.println("Successfully added Connection!");
             connections.add(connection);
             connection.start();
         } else {

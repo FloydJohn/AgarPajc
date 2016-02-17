@@ -9,21 +9,29 @@ import java.awt.geom.Point2D;
 import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Universe {
 
     private final Random generator = new Random();
+    private final boolean isServer;
     private ConcurrentHashMap<String, Player> players = new ConcurrentHashMap<>();
     private ConcurrentHashMap<Integer, Food> foods = new ConcurrentHashMap<>();
     private int currentFoodId = 0;
     private Dimension universeDimension;
     private Player player;
     private JSONObject jsonData = new JSONObject();
+    private ConcurrentLinkedQueue<Food> eatenFoods = new ConcurrentLinkedQueue<>();
 
-    public Universe(String playerName, Dimension universeDimension) {
+    public Universe(String playerName, Dimension universeDimension, boolean isServer) {
         this.universeDimension = universeDimension;
         player = new Player(playerName, true, new Point2D.Float(20, 50), 30, new Random().nextInt(Player.possibleColors.length), this);
         players.put(playerName, player);
+        this.isServer = isServer;
+    }
+
+    public ConcurrentLinkedQueue<Food> getEatenFoods() {
+        return eatenFoods;
     }
 
     public void generateRandomFood(int foodNumber) {
@@ -53,15 +61,14 @@ public class Universe {
         for (Iterator<Food> iterator = foods.values().iterator(); iterator.hasNext(); ) {
             Food f = iterator.next();
             switch (f.getCurrentState()) {
-                case TO_ADD:
                 case ADDED:
                     if (player.intersects(f).equals(IntersectionType.THIS_EATS)) {
                         player.eat(f);
-                        f.setCurrentState(Food.State.TO_REMOVE);
+                        f.setCurrentState(Food.State.REMOVING);
                     }
                     break;
-                case TO_REMOVE:
-                case REMOVED:
+                case REMOVING:
+                    if (!isServer) eatenFoods.add(f);
                     iterator.remove();
                     break;
             }

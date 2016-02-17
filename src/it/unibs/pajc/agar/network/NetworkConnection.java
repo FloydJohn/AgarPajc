@@ -1,6 +1,5 @@
 package it.unibs.pajc.agar.network;
 
-import it.unibs.pajc.agar.universe.GameObject;
 import it.unibs.pajc.agar.universe.Player;
 import it.unibs.pajc.agar.universe.Universe;
 import org.json.JSONArray;
@@ -51,7 +50,6 @@ public abstract class NetworkConnection extends Thread{
                 receive(received);
             }
         } catch (IOException e) {
-            System.out.println("Error opening sockets: "+e);
             interrupt();
         }
     }
@@ -66,7 +64,9 @@ public abstract class NetworkConnection extends Thread{
             out.write("\n");
             out.flush();
         } catch (Exception e) {
-            System.out.println("Couldn't flush: " + e.getMessage());
+            if (this instanceof Server)
+                System.out.printf("Player %s left the game.\n", ((Server) this).getPlayerName());
+            else System.out.println("Server disconnected.");
             controller.updateConnections(this, false);
             this.interrupt();
         }
@@ -81,12 +81,11 @@ public abstract class NetworkConnection extends Thread{
         @Override
         public void send() {
             JSONObject json = myUniverse.getPlayer().toJSON();
-            JSONArray eaten = new JSONArray();
-            myUniverse.getFoods().values().stream().filter(f -> f.getCurrentState() == GameObject.State.TO_REMOVE).forEach(f -> {
-                eaten.put(f.getId());
-                f.setCurrentState(GameObject.State.REMOVED);
-            });
-            if (eaten.length() > 0) json.put("e", eaten);
+            if (myUniverse.getEatenFoods().peek() != null) {
+                JSONArray eaten = new JSONArray();
+                while (myUniverse.getEatenFoods().peek() != null) eaten.put(myUniverse.getEatenFoods().poll().getId());
+                json.put("e", eaten);
+            }
             super.send(json);
         }
 
