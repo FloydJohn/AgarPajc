@@ -36,7 +36,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         this.setMinimumSize(new Dimension(800,600));
         new Timer(20, e -> this.repaint()).start();
         mouse = new Point2D.Float(0,0);
-        universe = new Universe(dialog.getPlayerName(), new Dimension(5000, 3000));
+        universe = new Universe(dialog.getPlayerName(), new Dimension(5000, 3000), dialog.isServer());
         viewWindow = new Rectangle(0, 0, 0, 0);
         updateViewWindow();
         if (dialog.isServer()) universe.generateRandomFood(500);
@@ -54,10 +54,10 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
         switch (NetworkController.getInstance().getCurrentState()) {
             case CONNECTED:
-                paintGame(g);
+                gameLoop(g);
                 break;
             case LOGIN:
-                paintLogin(g);
+                loginLoop(g);
                 break;
             case DEAD:
                 System.exit(1);
@@ -65,7 +65,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         }
     }
 
-    private void paintLogin(Graphics2D g) {
+    private void loginLoop(Graphics2D g) {
         clearScreen(g, Color.BLACK);
         g.setFont(loginFont);
         g.setColor(Color.WHITE);
@@ -76,7 +76,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         g.drawString(CONNECTING, x, y);
     }
 
-    private void paintGame(Graphics2D g) {
+    private void gameLoop(Graphics2D g) {
         this.setSize(800, 600);
         oldTransform = g.getTransform();
         updateViewWindow();
@@ -90,18 +90,17 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         if ((mouse.getX() != 0 || mouse.getY() != 0) && !universe.getPlayer().isInside(mouse)) {
             universe.getPlayer().setTarget(mouse);
         } else universe.getPlayer().setTarget(null);
+
         universe.update();
 
         for (Food f : universe.getFoods().values()) {
-            if (//!f.isInside(viewWindow) ||
-                    f.getCurrentState().equals(GameObject.State.TO_REMOVE) ||
-                            f.getCurrentState().equals(GameObject.State.REMOVED)) continue;
-
+            if (//!f.isInside(viewWindow) ||//TODO Restore
+                    f.getCurrentState().equals(GameObject.State.REMOVING)) continue;
             g.setColor(f.getColor());
             g.fill(f.getShape(true));
+            g.setColor(Color.YELLOW);
+            g.fillOval((int) f.getPosition().x - 2, (int) f.getPosition().y - 2, 4, 4);
         }
-
-        g.drawRoundRect(500, 500, 100, 100, 10, 10);
 
         g.setFont(massFont);
         for (Player p : universe.getPlayers().values()) {
@@ -110,13 +109,15 @@ public class GameController extends JPanel implements KeyListener, MouseListener
                 if (!piece.isInside(viewWindow)) continue;
                 g.setTransform(newTransform);
                 g.fill(piece.getShape(true));
+                g.setColor(Color.BLACK);
+                g.fillOval((int) piece.getPosition().x - 5, (int) piece.getPosition().y - 5, 10, 10);
                 g.setTransform(oldTransform);
                 g.setColor(Color.WHITE);
                 String weight = String.valueOf(piece.getMass());
                 FontMetrics fm = g.getFontMetrics();
                 Rectangle2D r = fm.getStringBounds(weight, g);
-                int x = (int) ((int) ((piece.getCenter().x - (int) r.getWidth() / 2)) - viewWindow.getX());
-                int y = (int) ((viewWindow.getHeight() - piece.getCenter().y - (int) r.getHeight() / 2) + fm.getAscent() + viewWindow.getY());
+                int x = (int) ((int) ((piece.getPosition().x - (int) r.getWidth() / 2)) - viewWindow.getX());
+                int y = (int) ((viewWindow.getHeight() - piece.getPosition().y - (int) r.getHeight() / 2) + fm.getAscent() + viewWindow.getY());
                 g.drawString(weight, x, y);
             }
         }
@@ -124,7 +125,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
     private void updateViewWindow() {
 
-        Point2D.Float pCenter = universe.getPlayer().getCenter();
+        Point2D.Float pCenter = universe.getPlayer().getPosition();
         float pRadius = universe.getPlayer().getRadius();
         Dimension uSize = universe.getBounds();
 
@@ -153,11 +154,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
     @Override
     public void keyTyped(KeyEvent e) {
-        switch (e.getKeyChar()) {
-            case 'm':
-                universe.getPlayer().eat(20);
-                break;
-        }
+
     }
 
     @Override
@@ -165,9 +162,15 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
     }
 
-    @Override
     public void keyReleased(KeyEvent e) {
-
+        switch (e.getKeyChar()) {
+            case 'm':
+                universe.getPlayer().eat(20);
+                break;
+            case 'a':
+                universe.generateRandomFood(1);
+                break;
+        }
     }
 
     @Override

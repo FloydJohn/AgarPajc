@@ -6,33 +6,32 @@ import java.awt.geom.Point2D;
 
 public abstract class CircleObject extends GameObject {
 
-    private Point2D.Float center;
+    private static final int ANIMATION_SPEED = 1;
+    private int animationMass = -1;
 
     public CircleObject(Point2D.Float position, int mass, Color color, Universe universe) {
         super(position, mass, null, color, universe);
+        this.animationMass = mass;
         generateShape();
     }
 
-    public Point2D.Float getCenter() {
-        return center;
-    }
-
     @Override
-    public void setPosition(float x, float y) {
-        super.setPosition(x, y);
-        if (center == null) center = new Point2D.Float();
-        center.x = getPosition().x + getRadius();
-        center.y = getPosition().y + getRadius();
-    }
-
-    @Override
-    public void setMass(int mass) {
-        super.setMass(mass);
-        generateShape();
+    public void update() {
+        if (animationMass != mass) {
+            if (animationMass > mass) animationMass = Math.max(mass, animationMass - ANIMATION_SPEED);
+            else animationMass = Math.min(mass, animationMass + ANIMATION_SPEED);
+            generateShape();
+        }
+        super.update();
     }
 
     protected void generateShape() {
-        super.setShape(new Ellipse2D.Float(0, 0, mass, mass));
+        if (animationMass > 0) generateShape(animationMass);
+        else generateShape(mass);
+    }
+
+    protected void generateShape(int radius) {
+        super.setShape(new Ellipse2D.Float(-radius / 2, -radius / 2, radius, radius));
     }
 
     @Override
@@ -41,13 +40,17 @@ public abstract class CircleObject extends GameObject {
         if (this.target == null) return;
 
         this.target.setLocation(
-                this.target.getX() - shape.getBounds().getWidth()/2,
-                this.target.getY() - shape.getBounds().getHeight()/2
+                this.target.getX(),
+                this.target.getY()
         );
     }
 
-    public boolean intersects(CircleObject otherObject) {
-        return getCenter().distance(otherObject.getCenter()) < (getRadius() + otherObject.getRadius()) / 2;
+    public IntersectionType intersects(CircleObject otherObject) {
+        if (getPosition().distance(otherObject.getPosition()) < (getRadius() + otherObject.getRadius()) / 2) {
+            if (this.getMass() > otherObject.getMass()) return IntersectionType.THIS_EATS;
+            else return IntersectionType.OTHER_EATS;
+        }
+        return IntersectionType.NO_INTERSECTION;
     }
 
     public float getRadius() {

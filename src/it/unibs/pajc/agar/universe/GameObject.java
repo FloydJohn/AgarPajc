@@ -18,13 +18,13 @@ public abstract class GameObject {
     protected Dimension bounds;
 
     private AffineTransform shapeTransform = new AffineTransform();
-    private State currentState = State.TO_ADD;
+    private State currentState = State.ADDED;
 
     public GameObject(Point2D.Float position, int mass, Shape shape, Color color, Universe universe) {
         this.shape = shape;
         setMass(mass);
         this.position = new Point2D.Float();
-        setPosition(position.x, position.y);
+        this.setPosition(position.x, position.y);
         this.color = color;
         this.bounds = universe.getBounds();
         this.target = (Point2D.Float) this.position.clone();
@@ -147,6 +147,6 @@ public abstract class GameObject {
 
 
     public enum State {
-        TO_ADD, TO_REMOVE, ADDED, REMOVED
+        ADDED, REMOVING
     }
 }

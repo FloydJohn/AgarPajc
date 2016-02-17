@@ -15,7 +15,6 @@ public class Player {
     private int color;
     private Universe universe;
     private String name;
-    private GameObject.State currentState = GameObject.State.ADDED;
 
     public Player(String name, boolean isReal, Point2D.Float position, int mass, int color, Universe universe) {
         this.color = color;
@@ -28,14 +27,6 @@ public class Player {
     public Player(Universe universe, JSONObject playerJson) {
         this.universe = universe;
         fromJSON(playerJson);
-    }
-
-    public GameObject.State getCurrentState() {
-        return currentState;
-    }
-
-    public void setCurrentState(GameObject.State currentState) {
-        this.currentState = currentState;
     }
 
     public void setTarget(Point2D.Float target) {
@@ -54,24 +45,16 @@ public class Player {
         pieces.forEach(Piece::update);
     }
 
-    public Point2D.Float getPosition() {
-        return pieces.get(0).getPosition();
-    }
-
-    public Rectangle getDimension() {
-        return pieces.get(0).getShape(false).getBounds();
-    }
-
-    public boolean intersects(CircleObject circleObject) {
+    public IntersectionType intersects(CircleObject circleObject) {
         for (Piece p : pieces) {
-            if (p.intersects(circleObject))
-                return true;
+            if (!p.intersects(circleObject).equals(IntersectionType.NO_INTERSECTION))
+                return p.intersects(circleObject);
         }
-        return false;
+        return IntersectionType.NO_INTERSECTION;
     }
 
     public void eat(Food food) {
-        pieces.stream().filter(p -> p.intersects(food)).forEach(p -> p.eat(food));
+        pieces.stream().filter(p -> p.intersects(food).equals(IntersectionType.THIS_EATS)).forEach(p -> p.eat(food));
     }
 
     public JSONObject toJSON() {
@@ -119,17 +102,14 @@ public class Player {
         pieces.get(0).setMass(pieces.get(0).getMass() + mass);
     }
 
-    public int getMass() {
-        return pieces.get(0).getMass();
-    }
-
-    public Point2D.Float getCenter() {
-        return pieces.get(0).getCenter();
-    }
-
     public float getRadius() {
         return pieces.get(0).getRadius();
     }
+
+    public Point2D.Float getPosition() {
+        return pieces.get(0).getPosition();
+    }
+
 
     public class Piece extends CircleObject{
 
