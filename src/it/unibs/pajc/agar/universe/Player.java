@@ -15,7 +15,6 @@ public class Player {
     private int color;
     private Universe universe;
     private String name;
-    private GameObject.State currentState = GameObject.State.ADDED;
 
     public Player(String name, boolean isReal, Point2D.Float position, int mass, int color, Universe universe) {
         this.color = color;
@@ -46,16 +45,16 @@ public class Player {
         pieces.forEach(Piece::update);
     }
 
-    public boolean intersects(CircleObject circleObject) {
+    public IntersectionType intersects(CircleObject circleObject) {
         for (Piece p : pieces) {
-            if (p.intersects(circleObject))
-                return true;
+            if (!p.intersects(circleObject).equals(IntersectionType.NO_INTERSECTION))
+                return p.intersects(circleObject);
         }
-        return false;
+        return IntersectionType.NO_INTERSECTION;
     }
 
     public void eat(Food food) {
-        pieces.stream().filter(p -> p.intersects(food)).forEach(p -> p.eat(food));
+        pieces.stream().filter(p -> p.intersects(food).equals(IntersectionType.THIS_EATS)).forEach(p -> p.eat(food));
     }
 
     public JSONObject toJSON() {

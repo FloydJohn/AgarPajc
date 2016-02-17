@@ -39,7 +39,10 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         universe = new Universe(dialog.getPlayerName(), new Dimension(5000, 3000));
         viewWindow = new Rectangle(0, 0, 0, 0);
         updateViewWindow();
-        if (dialog.isServer()) universe.generateRandomFood(500);
+        if (dialog.isServer()) {
+            universe.generateRandomFood(500);
+            universe.debug();
+        }
         NetworkController.getInstance().connect(dialog.isServer(), dialog.getIpAddress(), 1234, universe);
     }
 
@@ -99,6 +102,8 @@ public class GameController extends JPanel implements KeyListener, MouseListener
                             f.getCurrentState().equals(GameObject.State.REMOVED)) continue;
             g.setColor(f.getColor());
             g.fill(f.getShape(true));
+            g.setColor(Color.YELLOW);
+            g.fillOval((int) f.getCenter().x - 5, (int) f.getCenter().y - 5, 10, 10);
         }
 
         g.setFont(massFont);
@@ -108,6 +113,8 @@ public class GameController extends JPanel implements KeyListener, MouseListener
                 if (!piece.isInside(viewWindow)) continue;
                 g.setTransform(newTransform);
                 g.fill(piece.getShape(true));
+                g.setColor(Color.BLACK);
+                g.fillOval((int) piece.getCenter().x - 5, (int) piece.getCenter().y - 5, 10, 10);
                 g.setTransform(oldTransform);
                 g.setColor(Color.WHITE);
                 String weight = String.valueOf(piece.getMass());

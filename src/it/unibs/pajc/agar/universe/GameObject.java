@@ -24,7 +24,7 @@ public abstract class GameObject {
         this.shape = shape;
         setMass(mass);
         this.position = new Point2D.Float();
-        setPosition(position.x, position.y);
+        this.setPosition(position.x, position.y);
         this.color = color;
         this.bounds = universe.getBounds();
         this.target = (Point2D.Float) this.position.clone();

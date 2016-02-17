@@ -55,7 +55,7 @@ public class Universe {
             switch (f.getCurrentState()) {
                 case TO_ADD:
                 case ADDED:
-                    if (player.intersects(f)) {
+                    if (player.intersects(f).equals(IntersectionType.THIS_EATS)) {
                         player.eat(f);
                         f.setCurrentState(Food.State.TO_REMOVE);
                     }
@@ -139,5 +139,12 @@ public class Universe {
 
     public int getCurrentFoodId() {
         return currentFoodId;
+    }
+
+    //TODO Temp
+    public void debug() {
+        Food food = new Food(this, new Point2D.Float(200, 200), currentFoodId);
+        food.setMass(100);
+        foods.put(currentFoodId++, food);
     }
 }
