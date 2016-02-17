@@ -47,12 +47,11 @@ public class NetworkController extends Thread {
 
     @Override
     public void run() {
-
         while (currentState != ConnectionState.EXIT) {
             try (ServerSocket serverSocket = new ServerSocket(port)){
                 currentState = ConnectionState.CONNECTED;
                 NetworkConnection.Client.Server newConnection = new NetworkConnection.Client.Server(universe, serverSocket.accept(), this);
-                System.out.println("Server received client request! Adding connection...");
+                System.out.println("New player joined!");
                 updateConnections(newConnection, true);
             } catch (IOException e) {
                 System.out.println("Could not open connection: "+e);
@@ -67,7 +66,6 @@ public class NetworkController extends Thread {
 
     public synchronized void updateConnections(NetworkConnection connection, boolean toAdd) {
         if (toAdd) {
-            System.out.println("Successfully added Connection!");
             connections.add(connection);
             connection.start();
         } else {
@@ -83,10 +81,7 @@ public class NetworkController extends Thread {
 
     public synchronized void sendUpdate() {
         try {
-            for (NetworkConnection c : connections) {
-                if (isServer) c.send(universe.toJSON(((NetworkConnection.Server) c).getPlayerName()));
-                else c.send(null);
-            }
+            connections.forEach(NetworkConnection::send);
         } catch (ConcurrentModificationException ignored) {
         }
     }

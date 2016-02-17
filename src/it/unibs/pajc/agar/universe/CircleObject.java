@@ -20,6 +20,11 @@ public abstract class CircleObject extends GameObject {
     @Override
     public void setPosition(float x, float y) {
         super.setPosition(x, y);
+        updateCenter();
+    }
+
+    private void updateCenter() {
+        if (position == null) return;
         if (center == null) center = new Point2D.Float();
         center.x = getPosition().x + getRadius();
         center.y = getPosition().y + getRadius();
@@ -29,10 +34,15 @@ public abstract class CircleObject extends GameObject {
     public void setMass(int mass) {
         super.setMass(mass);
         generateShape();
+        updateCenter();
     }
 
     protected void generateShape() {
-        super.setShape(new Ellipse2D.Float(0, 0, mass, mass));
+        generateShape(mass);
+    }
+
+    protected void generateShape(int radius) {
+        super.setShape(new Ellipse2D.Float(0, 0, radius, radius));
     }
 
     @Override
@@ -46,8 +56,12 @@ public abstract class CircleObject extends GameObject {
         );
     }
 
-    public boolean intersects(CircleObject otherObject) {
-        return getCenter().distance(otherObject.getCenter()) < (getRadius() + otherObject.getRadius()) / 2;
+    public IntersectionType intersects(CircleObject otherObject) {
+        if (getCenter().distance(otherObject.getCenter()) < (getRadius() + otherObject.getRadius()) / 2) {
+            if (this.getMass() > otherObject.getMass()) return IntersectionType.THIS_EATS;
+            else return IntersectionType.OTHER_EATS;
+        }
+        return IntersectionType.NO_INTERSECTION;
     }
 
     public float getRadius() {

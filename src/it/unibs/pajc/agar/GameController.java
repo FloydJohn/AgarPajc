@@ -36,10 +36,13 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         this.setMinimumSize(new Dimension(800,600));
         new Timer(20, e -> this.repaint()).start();
         mouse = new Point2D.Float(0,0);
-        universe = new Universe(dialog.getPlayerName(), new Dimension(5000, 3000));
+        universe = new Universe(dialog.getPlayerName(), new Dimension(5000, 3000), dialog.isServer());
         viewWindow = new Rectangle(0, 0, 0, 0);
         updateViewWindow();
-        if (dialog.isServer()) universe.generateRandomFood(500);
+        if (dialog.isServer()) {
+            universe.generateRandomFood(500);
+            universe.debug();
+        }
         NetworkController.getInstance().connect(dialog.isServer(), dialog.getIpAddress(), 1234, universe);
     }
 
@@ -54,10 +57,10 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
         switch (NetworkController.getInstance().getCurrentState()) {
             case CONNECTED:
-                paintGame(g);
+                gameLoop(g);
                 break;
             case LOGIN:
-                paintLogin(g);
+                loginLoop(g);
                 break;
             case DEAD:
                 System.exit(1);
@@ -65,7 +68,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         }
     }
 
-    private void paintLogin(Graphics2D g) {
+    private void loginLoop(Graphics2D g) {
         clearScreen(g, Color.BLACK);
         g.setFont(loginFont);
         g.setColor(Color.WHITE);
@@ -76,7 +79,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         g.drawString(CONNECTING, x, y);
     }
 
-    private void paintGame(Graphics2D g) {
+    private void gameLoop(Graphics2D g) {
         this.setSize(800, 600);
         oldTransform = g.getTransform();
         updateViewWindow();
@@ -90,18 +93,17 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         if ((mouse.getX() != 0 || mouse.getY() != 0) && !universe.getPlayer().isInside(mouse)) {
             universe.getPlayer().setTarget(mouse);
         } else universe.getPlayer().setTarget(null);
+
         universe.update();
 
         for (Food f : universe.getFoods().values()) {
-            if (//!f.isInside(viewWindow) ||
-                    f.getCurrentState().equals(GameObject.State.TO_REMOVE) ||
-                            f.getCurrentState().equals(GameObject.State.REMOVED)) continue;
-
+            if (//!f.isInside(viewWindow) ||//TODO Restore
+                    f.getCurrentState().equals(GameObject.State.REMOVING)) continue;
             g.setColor(f.getColor());
             g.fill(f.getShape(true));
+            g.setColor(Color.YELLOW);
+            g.fillOval((int) f.getCenter().x - 5, (int) f.getCenter().y - 5, 10, 10);
         }
-
-        g.drawRoundRect(500, 500, 100, 100, 10, 10);
 
         g.setFont(massFont);
         for (Player p : universe.getPlayers().values()) {
@@ -110,6 +112,8 @@ public class GameController extends JPanel implements KeyListener, MouseListener
                 if (!piece.isInside(viewWindow)) continue;
                 g.setTransform(newTransform);
                 g.fill(piece.getShape(true));
+                g.setColor(Color.BLACK);
+                g.fillOval((int) piece.getCenter().x - 5, (int) piece.getCenter().y - 5, 10, 10);
                 g.setTransform(oldTransform);
                 g.setColor(Color.WHITE);
                 String weight = String.valueOf(piece.getMass());
@@ -153,11 +157,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
     @Override
     public void keyTyped(KeyEvent e) {
-        switch (e.getKeyChar()) {
-            case 'm':
-                universe.getPlayer().eat(20);
-                break;
-        }
+
     }
 
     @Override
@@ -165,9 +165,15 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
     }
 
-    @Override
     public void keyReleased(KeyEvent e) {
-
+        switch (e.getKeyChar()) {
+            case 'm':
+                universe.getPlayer().eat(20);
+                break;
+            case 'a':
+                universe.generateRandomFood(1);
+                break;
+        }
     }
 
     @Override
