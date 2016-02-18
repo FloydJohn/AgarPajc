@@ -87,6 +87,7 @@ public abstract class NetworkConnection extends Thread{
                 json.put("e", eaten);
             }
             if (myUniverse.getEatenPlayers().peek() != null) {
+                System.out.println("I have eaten the player! His name was " + myUniverse.getEatenPlayers().peek().getName() + ", sorry :(");
                 JSONArray eatenPlayers = new JSONArray();
                 while (myUniverse.getEatenPlayers().peek() != null)
                     eatenPlayers.put(myUniverse.getEatenPlayers().poll().getName());
@@ -149,8 +150,10 @@ public abstract class NetworkConnection extends Thread{
                 }
             }
 
-            if (myUniverse.getEatenPlayers().peek() != null) while (myUniverse.getEatenPlayers().peek() != null)
+            if (myUniverse.getEatenPlayers().peek() != null) while (myUniverse.getEatenPlayers().peek() != null) {
                 eatenPlayers.put(myUniverse.getEatenPlayers().poll().getName());
+                System.out.println("I, as a good server, am notifying that our dear " + eatenPlayers.get(eatenPlayers.length() - 1) + " gone missing.");
+            }
 
             JSONObject out = new JSONObject();
             if (addedFood.length() > 0) out.put("a", addedFood);
@@ -168,7 +171,12 @@ public abstract class NetworkConnection extends Thread{
                 if (thisPlayer == null) myUniverse.updatePlayer(inJson, true);
                 else thisPlayer.fromJSON(new JSONObject(in));
                 playerName = inJson.getString("n");
-                if (inJson.has("ep")) myUniverse.eatPlayers(inJson.getJSONArray("ep"));
+                if (inJson.has("ep")) {
+                    myUniverse.eatPlayers(inJson.getJSONArray("ep"));
+                    if (thisPlayer != null) {
+                        System.out.println(thisPlayer.getName() + " told me he ate " + inJson.getJSONArray("ep").get(0) + "! Disgusting!");
+                    }
+                }
             } catch (IllegalArgumentException e) {
                 System.out.println("Bad formatted json in: " + e);
             }

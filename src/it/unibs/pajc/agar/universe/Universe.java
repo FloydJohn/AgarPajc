@@ -83,8 +83,10 @@ public class Universe {
             Player p = iterator.next();
             if (p == player) continue;
             if (player.intersects(p).equals(IntersectionType.THIS_EATS)) {
+                System.out.println("Eaten Player! Mass gained = " + p.getPieces().get(0).getMass());
                 player.eat(p);
                 if (p.getPieces().size() == 0) {
+                    System.out.println("Removed " + p.getName() + " from my players, i will send this to the server!");
                     eatenPlayers.add(p);
                     iterator.remove();
                 }
