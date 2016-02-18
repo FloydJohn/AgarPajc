@@ -23,6 +23,8 @@ public class Universe {
     private JSONObject jsonData = new JSONObject();
     private ConcurrentLinkedQueue<Food> eatenFoods = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<Player> eatenPlayers = new ConcurrentLinkedQueue<>();
+    //Client
+    private boolean updatedByServer = false;
 
     public Universe(String playerName, Dimension universeDimension, boolean isServer) {
         this.universeDimension = universeDimension;
@@ -109,7 +111,6 @@ public class Universe {
         return out;
     }
 
-    //Client
     public void fromJSON(String inString) throws IllegalArgumentException {
         try {
             JSONObject jsonObject = new JSONObject(inString);
@@ -121,14 +122,16 @@ public class Universe {
                 Player selected = getPlayer(playerJson.getString("n"));
                 if (selected == player) {
                     alive = true;
+                    updatedByServer = true;
                     continue;    //Skips update if is this player
                 }
                 if (selected == null) updatePlayer(playerJson, true);
                 else selected.fromJSON(playerJson);
             }
 
-            if (!alive) {
+            if (!alive && updatedByServer) {
                 System.out.println("I'm dead, leaving!");
+                updatedByServer = true;
                 System.exit(0);
             }
 
