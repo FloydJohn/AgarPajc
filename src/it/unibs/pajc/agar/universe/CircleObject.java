@@ -15,16 +15,6 @@ public abstract class CircleObject extends GameObject {
         generateShape();
     }
 
-    @Override
-    public void update() {
-        if (animationMass != mass) {
-            if (animationMass > mass) animationMass = Math.max(mass, animationMass - ANIMATION_SPEED);
-            else animationMass = Math.min(mass, animationMass + ANIMATION_SPEED);
-            generateShape();
-        }
-        super.update();
-    }
-
     protected void generateShape() {
         if (animationMass > 0) generateShape(animationMass);
         else generateShape(mass);
@@ -55,5 +45,13 @@ public abstract class CircleObject extends GameObject {
 
     public float getRadius() {
         return (float) (getShape(false).getBounds().getWidth() / 2);
+    }
+
+    public void updateMass() {
+        if (animationMass != mass) {
+            if (animationMass > mass) animationMass = Math.max(mass, animationMass - ANIMATION_SPEED);
+            else animationMass = Math.min(mass, animationMass + ANIMATION_SPEED);
+            generateShape();
+        }
     }
 }

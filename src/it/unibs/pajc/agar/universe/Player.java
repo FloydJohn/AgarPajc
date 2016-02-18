@@ -130,6 +130,10 @@ public class Player {
         }
     }
 
+    public void updateMass() {
+        for (Piece p : pieces) p.updateMass();
+    }
+
 
     public class Piece extends CircleObject{
 

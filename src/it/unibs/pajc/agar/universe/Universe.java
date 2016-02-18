@@ -62,6 +62,7 @@ public class Universe {
     }
 
     public void update() {
+        players.values().forEach(Player::updateMass);
         player.update();
         for (Iterator<Food> iterator = foods.values().iterator(); iterator.hasNext(); ) {
             Food f = iterator.next();
@@ -80,6 +81,7 @@ public class Universe {
         }
         for (Iterator<Player> iterator = players.values().iterator(); iterator.hasNext(); ) {
             Player p = iterator.next();
+            if (p == player) continue;
             if (player.intersects(p).equals(IntersectionType.THIS_EATS)) {
                 player.eat(p);
                 if (p.getPieces().size() == 0) {
