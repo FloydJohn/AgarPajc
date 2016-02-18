@@ -86,6 +86,12 @@ public abstract class NetworkConnection extends Thread{
                 while (myUniverse.getEatenFoods().peek() != null) eaten.put(myUniverse.getEatenFoods().poll().getId());
                 json.put("e", eaten);
             }
+            if (myUniverse.getEatenPlayers().peek() != null) {
+                JSONArray eatenPlayers = new JSONArray();
+                while (myUniverse.getEatenPlayers().peek() != null)
+                    eatenPlayers.put(myUniverse.getEatenPlayers().poll().getName());
+                json.put("ep", eatenPlayers);
+            }
             super.send(json);
         }
 
@@ -117,6 +123,7 @@ public abstract class NetworkConnection extends Thread{
             JSONArray foodJson = myUniverse.getJson().getJSONArray("f");
             JSONArray addedFood = new JSONArray();
             JSONArray removedFood = new JSONArray();
+            JSONArray eatenPlayers = new JSONArray();
             int universeIndex, notifiedIndex;
             for (int id = 0; id < myUniverse.getCurrentFoodId(); id++) {
                 universeIndex = -1;
@@ -141,9 +148,14 @@ public abstract class NetworkConnection extends Thread{
                     notifiedFood.remove(notifiedIndex);
                 }
             }
+
+            if (myUniverse.getEatenPlayers().peek() != null) while (myUniverse.getEatenPlayers().peek() != null)
+                eatenPlayers.put(myUniverse.getEatenPlayers().poll().getName());
+
             JSONObject out = new JSONObject();
             if (addedFood.length() > 0) out.put("a", addedFood);
             if (removedFood.length() > 0) out.put("r", removedFood);
+            if (eatenPlayers.length() > 0) out.put("ep", eatenPlayers);
             out.put("p", myUniverse.getJson().get("p"));
             super.send(out);
         }
@@ -156,6 +168,7 @@ public abstract class NetworkConnection extends Thread{
                 if (thisPlayer == null) myUniverse.updatePlayer(inJson, true);
                 else thisPlayer.fromJSON(new JSONObject(in));
                 playerName = inJson.getString("n");
+                if (inJson.has("ep")) myUniverse.eatPlayers(inJson.getJSONArray("ep"));
             } catch (IllegalArgumentException e) {
                 System.out.println("Bad formatted json in: " + e);
             }

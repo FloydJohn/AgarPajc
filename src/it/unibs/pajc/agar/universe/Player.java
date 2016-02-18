@@ -7,6 +7,7 @@ import org.json.JSONObject;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class Player {
 
@@ -49,6 +50,13 @@ public class Player {
         for (Piece p : pieces) {
             if (!p.intersects(circleObject).equals(IntersectionType.NO_INTERSECTION))
                 return p.intersects(circleObject);
+        }
+        return IntersectionType.NO_INTERSECTION;
+    }
+
+    public IntersectionType intersects(Player player) {
+        for (Piece p : player.getPieces()) {
+            if (this.intersects(p).equals(IntersectionType.THIS_EATS)) return IntersectionType.THIS_EATS;
         }
         return IntersectionType.NO_INTERSECTION;
     }
@@ -108,6 +116,18 @@ public class Player {
 
     public Point2D.Float getPosition() {
         return pieces.get(0).getPosition();
+    }
+
+    public void eat(Player p) {
+        for (Piece myPiece : pieces) {
+            for (Iterator<Piece> iterator = p.getPieces().iterator(); iterator.hasNext(); ) {
+                Piece hisPiece = iterator.next();
+                if (myPiece.intersects(hisPiece).equals(IntersectionType.THIS_EATS)) {
+                    this.eat(hisPiece.getMass());
+                    iterator.remove();
+                }
+            }
+        }
     }
 
 

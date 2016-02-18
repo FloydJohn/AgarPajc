@@ -22,6 +22,7 @@ public class Universe {
     private Player player;
     private JSONObject jsonData = new JSONObject();
     private ConcurrentLinkedQueue<Food> eatenFoods = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<Player> eatenPlayers = new ConcurrentLinkedQueue<>();
 
     public Universe(String playerName, Dimension universeDimension, boolean isServer) {
         this.universeDimension = universeDimension;
@@ -32,6 +33,10 @@ public class Universe {
 
     public ConcurrentLinkedQueue<Food> getEatenFoods() {
         return eatenFoods;
+    }
+
+    public ConcurrentLinkedQueue<Player> getEatenPlayers() {
+        return eatenPlayers;
     }
 
     public void generateRandomFood(int foodNumber) {
@@ -71,6 +76,16 @@ public class Universe {
                     if (!isServer) eatenFoods.add(f);
                     iterator.remove();
                     break;
+            }
+        }
+        for (Iterator<Player> iterator = players.values().iterator(); iterator.hasNext(); ) {
+            Player p = iterator.next();
+            if (player.intersects(p).equals(IntersectionType.THIS_EATS)) {
+                player.eat(p);
+                if (p.getPieces().size() == 0) {
+                    eatenPlayers.add(p);
+                    iterator.remove();
+                }
             }
         }
         jsonData = toJSON();
@@ -123,6 +138,13 @@ public class Universe {
         for (Object foodEaten : e)
             //noinspection RedundantCast
             foods.remove((Integer) foodEaten);
+    }
+
+    public void eatPlayers(JSONArray eatenPlayers) {
+        for (Object p : eatenPlayers) {
+            //noinspection RedundantCast
+            players.remove((String) p);
+        }
     }
 
     public Player getPlayer(String name) {
