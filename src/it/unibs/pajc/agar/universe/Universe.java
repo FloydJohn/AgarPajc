@@ -113,13 +113,23 @@ public class Universe {
             JSONObject jsonObject = new JSONObject(inString);
             //Parse players
             JSONArray playersJson = jsonObject.getJSONArray("p");
+            boolean alive = false;
             for (Object element : playersJson) {
                 JSONObject playerJson = (JSONObject) element;
                 Player selected = getPlayer(playerJson.getString("n"));
-                if (selected == player) continue; //Skips update if is this player
+                if (selected == player) {
+                    alive = true;
+                    continue;    //Skips update if is this player
+                }
                 if (selected == null) updatePlayer(playerJson, true);
                 else selected.fromJSON(playerJson);
             }
+
+            if (!alive) {
+                System.out.println("I'm dead, leaving!");
+                System.exit(0);
+            }
+
             //Parse Eaten
             if (jsonObject.has("r"))
                 eatFoods(jsonObject.getJSONArray("r"));
