@@ -81,8 +81,7 @@ public class Universe {
                     break;
             }
         }
-        for (Iterator<Player> iterator = players.values().iterator(); iterator.hasNext(); ) {
-            Player p = iterator.next();
+        for (Player p : players.values()) {
             if (p == player || !p.isAlive()) continue;
             if (player.intersects(p).equals(IntersectionType.THIS_EATS)) {
                 System.out.println("[Universe#update] Eaten Player! Mass gained = " + p.getPieces().get(0).getMass());
@@ -109,7 +108,7 @@ public class Universe {
     //Server
     public JSONObject toJSON() {
         JSONArray playersJson = new JSONArray(), foodJson = new JSONArray();
-        for (Player p : players.values()) playersJson.put(p.toJSON());
+        players.values().stream().filter(Player::isAlive).forEach(p -> playersJson.put(p.toJSON()));
         for (Food f : foods.values()) foodJson.put(f.toJSON());
         JSONObject out = new JSONObject().put("p", playersJson);
         out.put("f", foodJson);

@@ -104,6 +104,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
         g.setFont(massFont);
         for (Player p : universe.getPlayers().values()) {
+            if (!p.isAlive()) continue;
             g.setColor(p.getColor());
             for (Player.Piece piece : p.getPieces()) {
                 //if (!piece.isInside(viewWindow)) continue;
