@@ -111,6 +111,7 @@ public class Universe {
         return out;
     }
 
+    //Client
     public void fromJSON(String inString) throws IllegalArgumentException {
         try {
             JSONObject jsonObject = new JSONObject(inString);
