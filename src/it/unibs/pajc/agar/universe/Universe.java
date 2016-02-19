@@ -83,14 +83,19 @@ public class Universe {
         }
         for (Iterator<Player> iterator = players.values().iterator(); iterator.hasNext(); ) {
             Player p = iterator.next();
-            if (p == player) continue;
+            if (p == player || !p.isAlive()) continue;
             if (player.intersects(p).equals(IntersectionType.THIS_EATS)) {
-                System.out.println("Eaten Player! Mass gained = " + p.getPieces().get(0).getMass());
+                System.out.println("[Universe#update] Eaten Player! Mass gained = " + p.getPieces().get(0).getMass());
                 player.eat(p);
                 if (p.getPieces().size() == 0) {
-                    System.out.println("Removed " + p.getName() + " from my players, i will send this to the server!");
-                    eatenPlayers.add(p);
-                    iterator.remove();
+                    if (isServer) {
+                        p.setAlive(false);
+                        System.out.println("[Universe#update] I am server and ate " + p.getName());
+                    } else {
+                        System.out.println("[Universe#update] I am client and ate " + p.getName());
+                        eatenPlayers.add(p);
+                        p.setAlive(false);
+                    }
                 }
             }
         }
@@ -161,7 +166,7 @@ public class Universe {
     public void eatPlayers(JSONArray eatenPlayers) {
         for (Object p : eatenPlayers) {
             //noinspection RedundantCast
-            players.remove((String) p);
+            players.get((String) p).setAlive(false);
         }
     }
 

@@ -90,7 +90,7 @@ public abstract class NetworkConnection extends Thread{
                 json.put("e", eaten);
             }
             if (myUniverse.getEatenPlayers().peek() != null) {
-                System.out.println("I have eaten the player! His name was " + myUniverse.getEatenPlayers().peek().getName() + ", sorry :(");
+                System.out.println("[NetworkConnection.Client] Found players in eatenPlayers queue! Sending...");
                 JSONArray eatenPlayers = new JSONArray();
                 while (myUniverse.getEatenPlayers().peek() != null)
                     eatenPlayers.put(myUniverse.getEatenPlayers().poll().getName());
@@ -104,7 +104,7 @@ public abstract class NetworkConnection extends Thread{
             try {
                 myUniverse.fromJSON(in);
             } catch (IllegalArgumentException e) {
-                System.out.println("Bad formatted json in: " + e);
+                System.out.println("[NetworkConnection.Client] Bad formatted json in: " + e);
             }
         }
     }
@@ -127,7 +127,7 @@ public abstract class NetworkConnection extends Thread{
             JSONArray foodJson = myUniverse.getJson().getJSONArray("f");
             JSONArray addedFood = new JSONArray();
             JSONArray removedFood = new JSONArray();
-            JSONArray eatenPlayers = new JSONArray();
+
             int universeIndex, notifiedIndex;
             for (int id = 0; id < myUniverse.getCurrentFoodId(); id++) {
                 universeIndex = -1;
@@ -153,15 +153,9 @@ public abstract class NetworkConnection extends Thread{
                 }
             }
 
-            if (myUniverse.getEatenPlayers().peek() != null) while (myUniverse.getEatenPlayers().peek() != null) {
-                eatenPlayers.put(myUniverse.getEatenPlayers().poll().getName());
-                System.out.println("I, as a good server, am notifying that our dear " + eatenPlayers.get(eatenPlayers.length() - 1) + " gone missing.");
-            }
-
             JSONObject out = new JSONObject();
             if (addedFood.length() > 0) out.put("a", addedFood);
             if (removedFood.length() > 0) out.put("r", removedFood);
-            if (eatenPlayers.length() > 0) out.put("ep", eatenPlayers);
             out.put("p", myUniverse.getJson().get("p"));
             super.send(out);
         }
@@ -176,12 +170,11 @@ public abstract class NetworkConnection extends Thread{
                 playerName = inJson.getString("n");
                 if (inJson.has("ep")) {
                     myUniverse.eatPlayers(inJson.getJSONArray("ep"));
-                    if (thisPlayer != null) {
-                        System.out.println(thisPlayer.getName() + " told me he ate " + inJson.getJSONArray("ep").get(0) + "! Disgusting!");
-                    }
+                    if (thisPlayer != null)
+                        System.out.println("[NetworkConnection.Server] " + thisPlayer.getName() + " ate " + inJson.getJSONArray("ep").get(0) + "...");
                 }
             } catch (IllegalArgumentException e) {
-                System.out.println("Bad formatted json in: " + e);
+                System.out.println("[NetworkConnection.Server] Bad formatted json in: " + e);
             }
         }
     }

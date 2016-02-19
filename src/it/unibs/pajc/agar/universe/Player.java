@@ -16,6 +16,7 @@ public class Player {
     private int color;
     private Universe universe;
     private String name;
+    private boolean alive = true;
 
     public Player(String name, boolean isReal, Point2D.Float position, int mass, int color, Universe universe) {
         this.color = color;
@@ -134,6 +135,13 @@ public class Player {
         for (Piece p : pieces) p.updateMass();
     }
 
+    public boolean isAlive() {
+        return alive;
+    }
+
+    public void setAlive(boolean alive) {
+        this.alive = alive;
+    }
 
     public class Piece extends CircleObject{
 
