@@ -16,6 +16,7 @@ public abstract class NetworkConnection extends Thread{
     protected BufferedWriter out;
     private Socket socket;
     private boolean toClose = false;
+    private int attempts = 0;
 
     public NetworkConnection(Universe universe, Socket socket, NetworkController networkController) {
         this.myUniverse = universe;
@@ -63,7 +64,9 @@ public abstract class NetworkConnection extends Thread{
             json.write(out);
             out.write("\n");
             out.flush();
+            attempts = 0;
         } catch (Exception e) {
+            if (attempts++ < 3) return;
             if (this instanceof Server)
                 System.out.printf("Player %s left the game.\n", ((Server) this).getPlayerName());
             else System.out.println("Server disconnected.");
