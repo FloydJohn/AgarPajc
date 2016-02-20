@@ -36,7 +36,7 @@ public abstract class CircleObject extends GameObject {
     }
 
     public IntersectionType intersects(CircleObject otherObject) {
-        if (getPosition().distance(otherObject.getPosition()) < (getRadius() + otherObject.getRadius()) / 2) {
+        if (getPosition().distance(otherObject.getPosition()) < getRadius()) {
             if (this.getMass() > otherObject.getMass()) return IntersectionType.THIS_EATS;
             else return IntersectionType.OTHER_EATS;
         }

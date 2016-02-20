@@ -52,7 +52,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
     @Override
     protected void paintComponent(Graphics gOrig) {
         Graphics2D g = (Graphics2D) gOrig;
-
+        setSize(800, 600);
         if (!universe.getPlayer().isAlive()) deadLoop(g);
 
         else switch (NetworkController.getInstance().getCurrentState()) {
@@ -69,7 +69,6 @@ public class GameController extends JPanel implements KeyListener, MouseListener
     }
 
     private void loginLoop(Graphics2D g) {
-        this.setSize(800, 600);
         oldTransform = g.getTransform();
         updateViewWindow();
         initScreen(g);
@@ -87,12 +86,12 @@ public class GameController extends JPanel implements KeyListener, MouseListener
     }
 
     private void gameLoop(Graphics2D g) {
-        this.setSize(800, 600);
         oldTransform = g.getTransform();
         updateViewWindow();
         initScreen(g);
         newTransform = g.getTransform();
-        mouse.setLocation((eventMousePosition.x + viewWindow.x) / newTransform.getScaleX(), (eventMousePosition.y + viewWindow.y) / newTransform.getScaleX());
+        mouse.setLocation(eventMousePosition.x * viewWindow.getWidth() / this.getWidth() + viewWindow.getX(),
+                eventMousePosition.y * viewWindow.getHeight() / this.getHeight() + viewWindow.getY());
 
         g.setColor(Color.RED);
         g.drawOval((int) mouse.x - 5, (int) mouse.y - 5, 10, 10);
@@ -104,12 +103,9 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         universe.update();
 
         for (Food f : universe.getFoods().values()) {
-            if (//!f.isInside(viewWindow) ||//TODO Restore
-                    f.getCurrentState().equals(GameObject.State.REMOVING)) continue;
+            if (!f.isInside(viewWindow) || f.getCurrentState().equals(GameObject.State.REMOVING)) continue;
             g.setColor(f.getColor());
             g.fill(f.getShape(true));
-            g.setColor(Color.YELLOW);
-            g.fillOval((int) f.getPosition().x - 2, (int) f.getPosition().y - 2, 4, 4);
         }
 
         g.setFont(massFont);
@@ -117,19 +113,12 @@ public class GameController extends JPanel implements KeyListener, MouseListener
             if (!p.isAlive()) continue;
             g.setColor(p.getColor());
             for (Player.Piece piece : p.getPieces()) {
-                //if (!piece.isInside(viewWindow)) continue;
+                if (!piece.isInside(viewWindow)) continue;
                 g.setTransform(newTransform);
                 g.fill(piece.getShape(true));
-                g.setColor(Color.BLACK);
-                g.fillOval((int) piece.getPosition().x - 5, (int) piece.getPosition().y - 5, 10, 10);
                 g.setTransform(oldTransform);
-                g.setColor(Color.WHITE);
-                String weight = String.valueOf(piece.getMass());
-                FontMetrics fm = g.getFontMetrics();
-                Rectangle2D r = fm.getStringBounds(weight, g);
-                int x = (int) ((int) ((piece.getPosition().x - (int) r.getWidth() / 2)) - viewWindow.getX());
-                int y = (int) ((viewWindow.getHeight() - piece.getPosition().y - (int) r.getHeight() / 2) + fm.getAscent() + viewWindow.getY());
-                g.drawString(weight, x, y);
+                g.setColor(Color.BLACK);
+                g.drawString(String.format("x=%d   y=%d   m=%d   r=%d", (int) piece.getPosition().x, (int) piece.getPosition().y, piece.getMass(), (int) p.getRadius()), 0, 12);
             }
         }
     }
@@ -140,26 +129,25 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
     private void updateViewWindow() {
 
-        Point2D.Float pCenter = universe.getPlayer().getPosition();
+        Point2D.Float pPos = universe.getPlayer().getPosition();
         float pRadius = universe.getPlayer().getRadius();
         Dimension uSize = universe.getBounds();
 
         int h = (int) Math.min(uSize.height, Math.max(this.getHeight(), 4 * pRadius));
         int w = h * 4 / 3;
-        int x = (int) Math.min(uSize.width - w, Math.max(0, pCenter.x - w / 2));
-        int y = (int) Math.min(uSize.height - h, Math.max(0, pCenter.y - h / 2));
+        int x = (int) Math.min(uSize.width - w, Math.max(0, pPos.getX() - w / 2));
+        int y = (int) Math.min(uSize.height - h, Math.max(0, pPos.getY() - h / 2));
 
         viewWindow.setBounds(x, y, w, h);
     }
 
     private void initScreen(Graphics2D g) {
-        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.scale(1, -1);
         g.translate(0, -this.getSize().height);
+        g.scale(this.getWidth() / viewWindow.getWidth(), this.getHeight() / viewWindow.getHeight());
         g.translate(-viewWindow.x, -viewWindow.y);
+        g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         clearScreen(g, Color.WHITE);
-        double scaleFactor = this.getHeight() / viewWindow.getHeight();
-        g.scale(scaleFactor, scaleFactor);
     }
 
     private void clearScreen(Graphics2D g, Color color) {

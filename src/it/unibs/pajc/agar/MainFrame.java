@@ -7,12 +7,12 @@ public class MainFrame {
     public static void main(String[] args) {
         JFrame frame = new JFrame("AgarPajc");
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.add(GameController.getInstance());
+        frame.getContentPane().add(GameController.getInstance());
         frame.setMinimumSize(GameController.getInstance().getMinimumSize());
         frame.setResizable(false);
         frame.pack();
-        frame.addKeyListener(GameController.getInstance());
-        frame.addMouseMotionListener(GameController.getInstance());
+        frame.getContentPane().addKeyListener(GameController.getInstance());
+        frame.getContentPane().addMouseMotionListener(GameController.getInstance());
         frame.setVisible(true);
     }
 }
