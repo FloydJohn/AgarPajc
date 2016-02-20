@@ -26,6 +26,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
     Rectangle viewWindow;
     AffineTransform oldTransform, newTransform;
+    private int dotsTimer = 0;
 
     private GameController() {
         super();
@@ -52,7 +53,9 @@ public class GameController extends JPanel implements KeyListener, MouseListener
     protected void paintComponent(Graphics gOrig) {
         Graphics2D g = (Graphics2D) gOrig;
 
-        switch (NetworkController.getInstance().getCurrentState()) {
+        if (!universe.getPlayer().isAlive()) deadLoop(g);
+
+        else switch (NetworkController.getInstance().getCurrentState()) {
             case CONNECTED:
                 gameLoop(g);
                 break;
@@ -66,14 +69,21 @@ public class GameController extends JPanel implements KeyListener, MouseListener
     }
 
     private void loginLoop(Graphics2D g) {
+        this.setSize(800, 600);
+        oldTransform = g.getTransform();
+        updateViewWindow();
+        initScreen(g);
         clearScreen(g, Color.BLACK);
+        g.setTransform(oldTransform);
         g.setFont(loginFont);
         g.setColor(Color.WHITE);
         FontMetrics fm = g.getFontMetrics();
+        if (++dotsTimer >= 200) dotsTimer = 0;
+        String message = CONNECTING.substring(0, CONNECTING.length() - 3 + dotsTimer / 50);
         Rectangle2D r = fm.getStringBounds(CONNECTING, g);
         int x = (int) ((viewWindow.getWidth() - (int) r.getWidth()) / 2);
-        int y = (int) ((viewWindow.getHeight() - (int) r.getHeight()) / 2 + fm.getAscent());
-        g.drawString(CONNECTING, x, y);
+        int y = (int) ((viewWindow.getHeight() - (int) r.getHeight()) / 2);
+        g.drawString(message, x, y);
     }
 
     private void gameLoop(Graphics2D g) {
@@ -124,6 +134,10 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         }
     }
 
+    private void deadLoop(Graphics2D g) {
+
+    }
+
     private void updateViewWindow() {
 
         Point2D.Float pCenter = universe.getPlayer().getPosition();
@@ -171,6 +185,11 @@ public class GameController extends JPanel implements KeyListener, MouseListener
             case 'a':
                 universe.generateRandomFood(1);
                 break;
+            case 'r':
+                if (!universe.getPlayer().isAlive()) universe.restartGame();
+                break;
+            case 'q':
+                if (!universe.getPlayer().isAlive()) System.exit(0);
         }
     }
 

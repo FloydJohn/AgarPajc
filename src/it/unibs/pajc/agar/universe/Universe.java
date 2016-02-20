@@ -191,4 +191,8 @@ public class Universe {
     public int getCurrentFoodId() {
         return currentFoodId;
     }
+
+    public void restartGame() {
+        //TODO
+    }
 }
