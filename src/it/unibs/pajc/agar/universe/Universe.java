@@ -121,6 +121,22 @@ public class Universe {
             JSONObject jsonObject = new JSONObject(inString);
             //Parse players
             JSONArray playersJson = jsonObject.getJSONArray("p");
+            for (Iterator<Player> iterator = players.values().iterator(); iterator.hasNext(); ) {
+                Player p = iterator.next();
+                boolean present = false;
+                for (Object element : playersJson) {
+                    if (((JSONObject) element).getString("n").equals(p.getName())) {
+                        present = true;
+                        break;
+                    }
+                }
+                if (!present && p != player) {
+                    System.out.println("[Universe.fromJson] Removed " + p.getName() + " because it's not present.");
+                    iterator.remove();
+                }
+            }
+
+
             boolean alive = false;
             for (Object element : playersJson) {
                 JSONObject playerJson = (JSONObject) element;
@@ -131,13 +147,17 @@ public class Universe {
                     continue;    //Skips update if is this player
                 }
                 if (selected == null) updatePlayer(playerJson, true);
-                else selected.fromJSON(playerJson);
+                else {
+                    if (playerJson.getJSONArray("i").length() == 0) {
+                        players.remove(selected.getName());
+                        System.out.println("[Universe.fromJson] Removed " + selected.getName() + " because it has 0 pieces.");
+                    } else selected.fromJSON(playerJson);
+                }
             }
 
+
             if (!alive && updatedByServer) {
-                System.out.println("I'm dead, leaving!");
-                updatedByServer = true;
-                System.exit(0);
+                player.setAlive(false);
             }
 
             //Parse Eaten
@@ -175,8 +195,10 @@ public class Universe {
 
     public void updatePlayer(JSONObject inJson, boolean toAdd) {
         if (toAdd) {
-            Player newPlayer = new Player(this, inJson);
-            players.put(newPlayer.getName(), newPlayer);
+            if (inJson.getJSONArray("i").length() > 0) {
+                Player newPlayer = new Player(this, inJson);
+                players.put(newPlayer.getName(), newPlayer);
+            }
         } else players.remove(inJson.getString("n"));
     }
 

@@ -81,6 +81,10 @@ public class Player {
             name = in.getString("n");
             color = in.getInt("c");
             JSONArray piecesJson = in.getJSONArray("i");
+            if (piecesJson.length() == 0) {
+                alive = false;
+                return;
+            }
             for (int i = 0; i < piecesJson.length(); i++) {
                 if (pieces.size() > i) {
                     pieces.get(i).fromJSON((JSONObject) piecesJson.get(i));
