@@ -18,22 +18,21 @@ public class GameController extends JPanel implements KeyListener, MouseListener
     private static final String CONNECTING = "Connecting...";
 
     private static GameController instance;
-    private final boolean debugging = false;
     Universe universe;
     Point2D.Float mouse, eventMousePosition = new Point2D.Float();
     Font loginFont = new Font("Arial", Font.BOLD, 50),
             massFont = new Font("Arial", Font.BOLD, 12);
-
     Rectangle viewWindow;
     AffineTransform oldTransform, newTransform;
+    private boolean debugging = false;
     private int dotsTimer = 0;
+    private int redAnimation = 50;
+    private boolean up = true;
 
     private GameController() {
         super();
         StartDialog dialog = new StartDialog();
-        //noinspection PointlessBooleanExpression, ConstantConditions
-        if (!debugging) dialog.setVisible(true);
-        else dialog.closeDialog(true);
+        dialog.setVisible(true);
         this.setMinimumSize(new Dimension(800,600));
         new Timer(20, e -> this.repaint()).start();
         mouse = new Point2D.Float(0,0);
@@ -111,20 +110,45 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         g.setFont(massFont);
         for (Player p : universe.getPlayers().values()) {
             if (!p.isAlive()) continue;
-            g.setColor(p.getColor());
-            for (Player.Piece piece : p.getPieces()) {
-                if (!piece.isInside(viewWindow)) continue;
-                g.setTransform(newTransform);
-                g.fill(piece.getShape(true));
+            if (p == universe.getPlayer()) {
                 g.setTransform(oldTransform);
                 g.setColor(Color.BLACK);
-                g.drawString(String.format("x=%d   y=%d   m=%d   r=%d", (int) piece.getPosition().x, (int) piece.getPosition().y, piece.getMass(), (int) p.getRadius()), 0, 12);
+                if (debugging) g.drawString(String.format("x=%d   y=%d   m=%d   r=%d",
+                        (int) p.getPosition().x,
+                        (int) p.getPosition().y,
+                        p.getPieces().get(0).getMass(),
+                        (int) p.getRadius()), 0, 12);
+            }
+            g.setColor(p.getColor());
+            g.setTransform(newTransform);
+            for (Player.Piece piece : p.getPieces()) {
+                if (!piece.isInside(viewWindow)) continue;
+                g.fill(piece.getShape(true));
             }
         }
     }
 
     private void deadLoop(Graphics2D g) {
-
+        oldTransform = g.getTransform();
+        updateViewWindow();
+        initScreen(g);
+        if (up) redAnimation += 2;
+        else redAnimation -= 2;
+        if (redAnimation <= 40 || redAnimation >= 200) up = !up;
+        clearScreen(g, new Color(Math.max(0, Math.min(redAnimation, 255)), 0, 0));
+        g.setTransform(oldTransform);
+        g.setFont(loginFont);
+        g.setColor(Color.WHITE);
+        FontMetrics fm = g.getFontMetrics();
+        String replayString = "Press R to play again!";
+        String quitString = "Press Q to quit :(";
+        Rectangle2D r = fm.getStringBounds(replayString, g);
+        int x = (int) ((viewWindow.getWidth() - (int) r.getWidth()) / 2);
+        int y = (int) ((viewWindow.getHeight() - (int) r.getHeight()) / 2) - 30;
+        g.drawString(replayString, x, y);
+        r = fm.getStringBounds(quitString, g);
+        x = (int) ((viewWindow.getWidth() - (int) r.getWidth()) / 2);
+        g.drawString(quitString, x, y + 60);
     }
 
     private void updateViewWindow() {
@@ -157,15 +181,6 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
     @Override
     public void keyTyped(KeyEvent e) {
-
-    }
-
-    @Override
-    public void keyPressed(KeyEvent e) {
-
-    }
-
-    public void keyReleased(KeyEvent e) {
         switch (e.getKeyChar()) {
             case 'm':
                 universe.getPlayer().eat(20);
@@ -178,7 +193,19 @@ public class GameController extends JPanel implements KeyListener, MouseListener
                 break;
             case 'q':
                 if (!universe.getPlayer().isAlive()) System.exit(0);
+            case 'd':
+                debugging = !debugging;
+                break;
         }
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+
+    }
+
+    public void keyReleased(KeyEvent e) {
+
     }
 
     @Override

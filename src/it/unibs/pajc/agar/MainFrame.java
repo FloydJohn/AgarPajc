@@ -11,7 +11,7 @@ public class MainFrame {
         frame.setMinimumSize(GameController.getInstance().getMinimumSize());
         frame.setResizable(false);
         frame.pack();
-        frame.getContentPane().addKeyListener(GameController.getInstance());
+        frame.addKeyListener(GameController.getInstance());
         frame.getContentPane().addMouseMotionListener(GameController.getInstance());
         frame.setVisible(true);
     }

@@ -193,6 +193,9 @@ public class Universe {
     }
 
     public void restartGame() {
-        //TODO
+        System.out.println("Restarting game!");
+        String playerName = player.getName();
+        player = new Player(playerName, true, new Point2D.Float(20, 50), 30, new Random().nextInt(Player.possibleColors.length), this);
+        players.put(playerName, player);
     }
 }
