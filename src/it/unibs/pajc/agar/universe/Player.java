@@ -16,7 +16,6 @@ public class Player {
     private int color;
     private Universe universe;
     private String name;
-    private boolean alive = true;
 
     public Player(String name, boolean isReal, Point2D.Float position, int mass, int color, Universe universe) {
         this.color = color;
@@ -81,10 +80,7 @@ public class Player {
             name = in.getString("n");
             color = in.getInt("c");
             JSONArray piecesJson = in.getJSONArray("i");
-            if (piecesJson.length() == 0) {
-                alive = false;
-                return;
-            }
+
             for (int i = 0; i < piecesJson.length(); i++) {
                 if (pieces.size() > i) {
                     pieces.get(i).fromJSON((JSONObject) piecesJson.get(i));
@@ -136,15 +132,15 @@ public class Player {
     }
 
     public void updateMass() {
-        for (Piece p : pieces) p.updateMass();
+        pieces.forEach(Piece::updateMass);
     }
 
     public boolean isAlive() {
-        return alive;
+        return !pieces.isEmpty();
     }
 
-    public void setAlive(boolean alive) {
-        this.alive = alive;
+    public void clearPieces() {
+        pieces.clear();
     }
 
     public class Piece extends CircleObject{

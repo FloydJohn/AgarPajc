@@ -88,12 +88,12 @@ public class Universe {
                 player.eat(p);
                 if (p.getPieces().size() == 0) {
                     if (isServer) {
-                        p.setAlive(false);
+                        p.clearPieces();
                         System.out.println("[Universe#update] I am server and ate " + p.getName());
                     } else {
                         System.out.println("[Universe#update] I am client and ate " + p.getName());
                         eatenPlayers.add(p);
-                        p.setAlive(false);
+                        p.clearPieces();
                     }
                 }
             }
@@ -108,7 +108,7 @@ public class Universe {
     //Server
     public JSONObject toJSON() {
         JSONArray playersJson = new JSONArray(), foodJson = new JSONArray();
-        players.values().stream().filter(Player::isAlive).forEach(p -> playersJson.put(p.toJSON()));
+        players.values().stream().forEach(p -> playersJson.put(p.toJSON()));
         for (Food f : foods.values()) foodJson.put(f.toJSON());
         JSONObject out = new JSONObject().put("p", playersJson);
         out.put("f", foodJson);
@@ -147,18 +147,11 @@ public class Universe {
                     continue;    //Skips update if is this player
                 }
                 if (selected == null) updatePlayer(playerJson, true);
-                else {
-                    if (playerJson.getJSONArray("i").length() == 0) {
-                        players.remove(selected.getName());
-                        System.out.println("[Universe.fromJson] Removed " + selected.getName() + " because it has 0 pieces.");
-                    } else selected.fromJSON(playerJson);
-                }
+                else selected.fromJSON(playerJson);
             }
 
 
-            if (!alive && updatedByServer) {
-                player.setAlive(false);
-            }
+            if (!alive && updatedByServer) player.clearPieces();
 
             //Parse Eaten
             if (jsonObject.has("r"))
@@ -185,7 +178,7 @@ public class Universe {
     public void eatPlayers(JSONArray eatenPlayers) {
         for (Object p : eatenPlayers) {
             //noinspection RedundantCast
-            players.get((String) p).setAlive(false);
+            players.get((String) p).clearPieces();
         }
     }
 
