@@ -87,6 +87,7 @@ public class Universe {
                 System.out.println("[Universe#update] Eaten Player! Mass gained = " + p.getPieces().get(0).getMass());
                 player.eat(p);
                 if (p.getPieces().size() == 0) {
+                    p.lockUpdates();
                     if (isServer) {
                         p.clearPieces();
                         System.out.println("[Universe#update] I am server and ate " + p.getName());

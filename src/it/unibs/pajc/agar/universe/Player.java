@@ -16,6 +16,7 @@ public class Player {
     private int color;
     private Universe universe;
     private String name;
+    private boolean updateLocked = false;
 
     public Player(String name, boolean isReal, Point2D.Float position, int mass, int color, Universe universe) {
         this.color = color;
@@ -28,6 +29,11 @@ public class Player {
     public Player(Universe universe, JSONObject playerJson) {
         this.universe = universe;
         fromJSON(playerJson);
+    }
+
+    public void lockUpdates() {
+        System.out.println("[Player#lockUpdates] Updates locked for " + name);
+        this.updateLocked = true;
     }
 
     public void setTarget(Point2D.Float target) {
@@ -77,6 +83,12 @@ public class Player {
 
     public void fromJSON(JSONObject in) throws IllegalArgumentException {
         try {
+            if (updateLocked) {
+                if (in.getJSONArray("i").length() == 0) {
+                    updateLocked = false;
+                    System.out.println("[Player#fromJSON] Unlocked player " + name);
+                } else return;
+            }
             name = in.getString("n");
             color = in.getInt("c");
             JSONArray piecesJson = in.getJSONArray("i");
@@ -112,10 +124,12 @@ public class Player {
     }
 
     public float getRadius() {
+        if (!isAlive()) return 0;
         return pieces.get(0).getRadius();
     }
 
     public Point2D.Float getPosition() {
+        if (!isAlive()) return new Point2D.Float();
         return pieces.get(0).getPosition();
     }
 
