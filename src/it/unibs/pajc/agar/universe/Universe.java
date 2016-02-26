@@ -23,6 +23,7 @@ public class Universe {
     private JSONObject jsonData = new JSONObject();
     private ConcurrentLinkedQueue<Food> eatenFoods = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<Player> eatenPlayers = new ConcurrentLinkedQueue<>();
+    private boolean playerCanDie = true;
 
     public Universe(String playerName, Dimension universeDimension, boolean isServer) {
         this.universeDimension = universeDimension;
@@ -135,7 +136,8 @@ public class Universe {
                 JSONObject playerJson = (JSONObject) element;
                 Player selected = getPlayer(playerJson.getString("n"));
                 if (selected == player) {
-                    if (playerJson.getInt("m") < 0 && player.isAlive()) player.die();
+                    if (!playerCanDie && playerJson.getInt("m") >= 0) playerCanDie = true;
+                    if (player.isAlive() && playerCanDie && playerJson.getInt("m") < 0) player.die();
                     continue;    //Skips update if is this player
                 }
                 if (selected == null) updatePlayer(playerJson, true);
@@ -196,6 +198,7 @@ public class Universe {
 
     public void restartGame() {
         System.out.println("Restarting game!");
+        playerCanDie = false;
         String playerName = player.getName();
         player = new Player(playerName, new Point2D.Float(20, 50), 30, new Random().nextInt(Player.possibleColors.length), this);
         players.put(playerName, player);
