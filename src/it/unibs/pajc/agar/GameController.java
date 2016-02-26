@@ -108,23 +108,24 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         }
 
         g.setFont(massFont);
+        int writeIndex = 1;
         for (Player p : universe.getPlayers().values()) {
-            if (!p.isAlive()) continue;
-            if (p == universe.getPlayer()) {
+            //if (!p.isAlive()) continue;
+            if (debugging) {
                 g.setTransform(oldTransform);
                 g.setColor(Color.BLACK);
-                if (debugging) g.drawString(String.format("x=%d   y=%d   m=%d   r=%d",
+                g.drawString(String.format("n = %s    x=%d   y=%d   m=%d   r=%d",
+                        p.getName(),
                         (int) p.getPosition().x,
                         (int) p.getPosition().y,
-                        p.getPieces().get(0).getMass(),
-                        (int) p.getRadius()), 0, 12);
+                        p.getMass(),
+                        (int) p.getRadius()
+                ), 0, 12 * (writeIndex++));
             }
             g.setColor(p.getColor());
             g.setTransform(newTransform);
-            for (Player.Piece piece : p.getPieces()) {
-                if (!piece.isInside(viewWindow)) continue;
-                g.fill(piece.getShape(true));
-            }
+            if (!p.isInside(viewWindow)) continue;
+            g.fill(p.getShape(true));
         }
     }
 

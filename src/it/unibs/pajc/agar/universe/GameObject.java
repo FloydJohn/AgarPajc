@@ -15,7 +15,7 @@ public abstract class GameObject {
     protected Color color;
     protected float speed = 0f;
     protected Point2D.Float target;
-    protected Dimension bounds;
+    protected Universe universe;
 
     private AffineTransform shapeTransform = new AffineTransform();
     private State currentState = State.ADDED;
@@ -26,7 +26,7 @@ public abstract class GameObject {
         this.position = new Point2D.Float();
         this.setPosition(position.x, position.y);
         this.color = color;
-        this.bounds = universe.getBounds();
+        this.universe = universe;
         this.target = (Point2D.Float) this.position.clone();
     }
 
@@ -54,10 +54,6 @@ public abstract class GameObject {
         return color;
     }
 
-    public float getSpeed() {
-        return speed;
-    }
-
     public void setSpeed(float speed) {
         this.speed = speed;
     }
@@ -73,10 +69,7 @@ public abstract class GameObject {
         }
     }
 
-    protected abstract void prepareUpdate();
-
     public void update() {
-        prepareUpdate();
         if (target == null || speed == 0f) return;
         moveToTarget();
     }
@@ -98,8 +91,8 @@ public abstract class GameObject {
 
     private void move(double x, double y) {
         setPosition(
-                (float) Math.max(0, Math.min(x, bounds.width)),
-                (float) Math.max(0, Math.min(y, bounds.height))
+                (float) Math.max(0, Math.min(x, universe.getBounds().width)),
+                (float) Math.max(0, Math.min(y, universe.getBounds().height))
         );
     }
 

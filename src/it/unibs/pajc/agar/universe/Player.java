@@ -1,108 +1,53 @@
 package it.unibs.pajc.agar.universe;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.awt.*;
 import java.awt.geom.Point2D;
-import java.util.ArrayList;
-import java.util.Iterator;
 
-public class Player {
+public class Player extends CircleObject {
 
     public static final Color[] possibleColors = new Color[]{Color.CYAN, Color.BLUE, Color.BLACK, Color.RED, Color.GREEN};
-    private ArrayList<Piece> pieces = new ArrayList<>();
     private int color;
-    private Universe universe;
     private String name;
     private boolean updateLocked = false;
 
-    public Player(String name, boolean isReal, Point2D.Float position, int mass, int color, Universe universe) {
-        this.color = color;
+    public Player(String name, Point2D.Float position, int mass, int color, Universe universe) {
+        super(position, mass, possibleColors[color], universe);
         this.name = name;
-
-        this.universe = universe;
-        pieces.add(new Piece(null, isReal, position, mass, getColor(), universe));
     }
 
     public Player(Universe universe, JSONObject playerJson) {
-        this.universe = universe;
+        super(new Point2D.Float(), 1, Color.RED, universe);
         fromJSON(playerJson);
     }
 
-    public void lockUpdates() {
-        System.out.println("[Player#lockUpdates] Updates locked for " + name);
-        this.updateLocked = true;
-    }
-
-    public void setTarget(Point2D.Float target) {
-        pieces.get(0).setTarget(target);
-    }
-
-    public ArrayList<Piece> getPieces() {
-        return pieces;
-    }
-
+    @Override
     public Color getColor() {
         return possibleColors[color];
     }
 
-    public void update() {
-        pieces.forEach(Piece::update);
-    }
-
-    public IntersectionType intersects(CircleObject circleObject) {
-        for (Piece p : pieces) {
-            if (!p.intersects(circleObject).equals(IntersectionType.NO_INTERSECTION))
-                return p.intersects(circleObject);
-        }
-        return IntersectionType.NO_INTERSECTION;
-    }
-
-    public IntersectionType intersects(Player player) {
-        for (Piece p : player.getPieces()) {
-            if (this.intersects(p).equals(IntersectionType.THIS_EATS)) return IntersectionType.THIS_EATS;
-        }
-        return IntersectionType.NO_INTERSECTION;
-    }
-
-    public void eat(Food food) {
-        pieces.stream().filter(p -> p.intersects(food).equals(IntersectionType.THIS_EATS)).forEach(p -> p.eat(food));
-    }
-
+    @Override
     public JSONObject toJSON() {
-        JSONObject out = new JSONObject();
+        JSONObject out = super.toJSON();
         out.put("n", name);
         out.put("c", color);
-        JSONArray piecesJson = new JSONArray();
-        for (Piece p : pieces) piecesJson.put(p.toJSON());
-        out.put("i", piecesJson);
         return out;
     }
 
+    @Override
     public void fromJSON(JSONObject in) throws IllegalArgumentException {
         try {
             if (updateLocked) {
-                if (in.getJSONArray("i").length() == 0) {
+                if (in.getInt("m") < 0) {
                     updateLocked = false;
                     System.out.println("[Player#fromJSON] Unlocked player " + name);
                 } else return;
             }
             name = in.getString("n");
             color = in.getInt("c");
-            JSONArray piecesJson = in.getJSONArray("i");
-
-            for (int i = 0; i < piecesJson.length(); i++) {
-                if (pieces.size() > i) {
-                    pieces.get(i).fromJSON((JSONObject) piecesJson.get(i));
-                } else {
-                    Piece newPiece = new Piece(null, false, new Point2D.Float(), 0, getColor(), universe);
-                    newPiece.fromJSON((JSONObject) piecesJson.get(i));
-                    pieces.add(newPiece);
-                }
-            }
-            for (int i = piecesJson.length(); i < pieces.size(); i++) pieces.remove(i);
+            super.fromJSON(in);
             if (in.has("e")) universe.eatFoods(in.getJSONArray("e"));
         } catch (JSONException | ClassCastException e) {
             throw new IllegalArgumentException("Could not parse Player JSON!", e);
@@ -114,65 +59,30 @@ public class Player {
     }
 
     public boolean isInside(Point2D.Float point) {
-        for (Piece p : pieces)
-            if (p.getShape(true).contains(point)) return true;
-        return false;
+        return getShape(true).contains(point);
     }
 
     public void eat(int mass) {
-        pieces.get(0).setMass(pieces.get(0).getMass() + mass);
+        setMass(getMass() + mass);
     }
 
     public float getRadius() {
         if (!isAlive()) return 0;
-        return pieces.get(0).getRadius();
+        return super.getRadius();
     }
 
     public Point2D.Float getPosition() {
         if (!isAlive()) return new Point2D.Float();
-        return pieces.get(0).getPosition();
-    }
-
-    public void eat(Player p) {
-        for (Piece myPiece : pieces) {
-            for (Iterator<Piece> iterator = p.getPieces().iterator(); iterator.hasNext(); ) {
-                Piece hisPiece = iterator.next();
-                if (myPiece.intersects(hisPiece).equals(IntersectionType.THIS_EATS)) {
-                    this.eat(hisPiece.getMass());
-                    iterator.remove();
-                }
-            }
-        }
-    }
-
-    public void updateMass() {
-        pieces.forEach(Piece::updateMass);
+        return super.getPosition();
     }
 
     public boolean isAlive() {
-        return !pieces.isEmpty();
+        return mass > 0;
     }
 
-    public void clearPieces() {
-        pieces.clear();
-    }
-
-    public class Piece extends CircleObject{
-
-        private Piece parent;
-        private boolean isReal;
-
-        public Piece(Piece parent, boolean isReal, Point2D.Float position, int mass, Color color, Universe universe) {
-            super(position, mass, color, universe);
-            this.parent = parent;
-            this.isReal = isReal;
-        }
-
-        @Override
-        protected void prepareUpdate() {
-            if (!isReal || parent == null) return;
-            super.setSpeed(parent.getSpeed()/2);
-            super.setTarget(parent.getPosition());
-        }
+    public void die() {
+        this.mass = -1;
+        System.out.println("[Player#die] Updates locked for " + name);
+        this.updateLocked = true;
     }
 }

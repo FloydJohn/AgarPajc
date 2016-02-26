@@ -23,12 +23,10 @@ public class Universe {
     private JSONObject jsonData = new JSONObject();
     private ConcurrentLinkedQueue<Food> eatenFoods = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<Player> eatenPlayers = new ConcurrentLinkedQueue<>();
-    //Client
-    private boolean updatedByServer = false;
 
     public Universe(String playerName, Dimension universeDimension, boolean isServer) {
         this.universeDimension = universeDimension;
-        player = new Player(playerName, true, new Point2D.Float(20, 50), 30, new Random().nextInt(Player.possibleColors.length), this);
+        player = new Player(playerName, new Point2D.Float(20, 50), 30, new Random().nextInt(Player.possibleColors.length), this);
         players.put(playerName, player);
         this.isServer = isServer;
     }
@@ -84,18 +82,14 @@ public class Universe {
         for (Player p : players.values()) {
             if (p == player || !p.isAlive()) continue;
             if (player.intersects(p).equals(IntersectionType.THIS_EATS)) {
-                System.out.println("[Universe#update] Eaten Player! Mass gained = " + p.getPieces().get(0).getMass());
-                player.eat(p);
-                if (p.getPieces().size() == 0) {
-                    p.lockUpdates();
-                    if (isServer) {
-                        p.clearPieces();
-                        System.out.println("[Universe#update] I am server and ate " + p.getName());
-                    } else {
-                        System.out.println("[Universe#update] I am client and ate " + p.getName());
-                        eatenPlayers.add(p);
-                        p.clearPieces();
-                    }
+                System.out.println("[Universe#update] Eaten Player! Mass gained = " + p.getMass());
+                player.eat(p.getMass());
+                p.die();
+                if (isServer) {
+                    System.out.println("[Universe#update] I am server and ate " + p.getName());
+                } else {
+                    System.out.println("[Universe#update] I am client and ate " + p.getName());
+                    eatenPlayers.add(p);
                 }
             }
         }
@@ -137,22 +131,16 @@ public class Universe {
                 }
             }
 
-
-            boolean alive = false;
             for (Object element : playersJson) {
                 JSONObject playerJson = (JSONObject) element;
                 Player selected = getPlayer(playerJson.getString("n"));
                 if (selected == player) {
-                    alive = true;
-                    updatedByServer = true;
+                    if (playerJson.getInt("m") < 0 && player.isAlive()) player.die();
                     continue;    //Skips update if is this player
                 }
                 if (selected == null) updatePlayer(playerJson, true);
                 else selected.fromJSON(playerJson);
             }
-
-
-            if (!alive && updatedByServer) player.clearPieces();
 
             //Parse Eaten
             if (jsonObject.has("r"))
@@ -179,7 +167,7 @@ public class Universe {
     public void eatPlayers(JSONArray eatenPlayers) {
         for (Object p : eatenPlayers) {
             //noinspection RedundantCast
-            players.get((String) p).clearPieces();
+            players.get((String) p).die();
         }
     }
 
@@ -189,10 +177,8 @@ public class Universe {
 
     public void updatePlayer(JSONObject inJson, boolean toAdd) {
         if (toAdd) {
-            if (inJson.getJSONArray("i").length() > 0) {
-                Player newPlayer = new Player(this, inJson);
-                players.put(newPlayer.getName(), newPlayer);
-            }
+            Player newPlayer = new Player(this, inJson);
+            players.put(newPlayer.getName(), newPlayer);
         } else players.remove(inJson.getString("n"));
     }
 
@@ -211,7 +197,7 @@ public class Universe {
     public void restartGame() {
         System.out.println("Restarting game!");
         String playerName = player.getName();
-        player = new Player(playerName, true, new Point2D.Float(20, 50), 30, new Random().nextInt(Player.possibleColors.length), this);
+        player = new Player(playerName, new Point2D.Float(20, 50), 30, new Random().nextInt(Player.possibleColors.length), this);
         players.put(playerName, player);
     }
 }

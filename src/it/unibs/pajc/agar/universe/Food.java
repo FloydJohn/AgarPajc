@@ -30,11 +30,6 @@ public class Food extends CircleObject{
     }
 
     @Override
-    protected void prepareUpdate() {
-
-    }
-
-    @Override
     public JSONObject toJSON() {
         return super.toJSON().put("id", id);
     }
