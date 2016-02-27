@@ -33,6 +33,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         super();
         StartDialog dialog = new StartDialog();
         dialog.setVisible(true);
+        if (dialog.wasClosed()) System.exit(0);
         this.setMinimumSize(new Dimension(800,600));
         new Timer(20, e -> this.repaint()).start();
         mouse = new Point2D.Float(0,0);
@@ -242,5 +243,9 @@ public class GameController extends JPanel implements KeyListener, MouseListener
     @Override
     public void mouseMoved(MouseEvent e) {
         this.eventMousePosition.setLocation(e.getX(), this.getHeight() - e.getY());
+    }
+
+    public void disconnectedMessage() {
+        JOptionPane.showMessageDialog(this, "Exiting: server disconnected.", "Server Disconnected", JOptionPane.ERROR_MESSAGE);
     }
 }

@@ -6,9 +6,10 @@ import java.util.prefs.Preferences;
 
 public class StartDialog extends JDialog {
 
-    private JTextField name = new JTextField(), ipAddr = new JTextField();
+    private JTextField name = new JTextField(), ipAddress = new JTextField();
     private JButton create = new JButton("Create"), join = new JButton("Join");
     private boolean isServer = false;
+    private boolean closed = true;
 
     public StartDialog() {
         super((JFrame)null, "Start Options", true);
@@ -16,11 +17,11 @@ public class StartDialog extends JDialog {
         create.addActionListener(e -> closeDialog(true));
         join.addActionListener(e -> closeDialog(false));
 
-        Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
+        Preferences pref = Preferences.userRoot().node(this.getClass().getName());
         name.setColumns(20);
-        name.setText(prefs.get("UserName", "Default"));
-        ipAddr.setColumns(20);
-        ipAddr.setText(prefs.get("IpAddress", "127.0.0.1"));
+        name.setText(pref.get("UserName", "Default"));
+        ipAddress.setColumns(20);
+        ipAddress.setText(pref.get("IpAddress", "127.0.0.1"));
         create.getSize();
         setLayout(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
@@ -35,7 +36,7 @@ public class StartDialog extends JDialog {
         c.gridy = 1;
         add(new JLabel("IP"), c);
         c.gridx = 1;
-        add(ipAddr, c);
+        add(ipAddress, c);
         c.gridx = 2;
         add(join, c);
         pack();
@@ -50,14 +51,19 @@ public class StartDialog extends JDialog {
     }
 
     public String getIpAddress() {
-        return ipAddr.getText();
+        return ipAddress.getText();
     }
 
     public void closeDialog(boolean isServer) {
+        this.closed = false;
         this.isServer = isServer;
         this.setVisible(false);
-        Preferences prefs = Preferences.userRoot().node(this.getClass().getName());
-        prefs.put("UserName", getPlayerName());
-        prefs.put("IpAddress", getIpAddress());
+        Preferences preferences = Preferences.userRoot().node(this.getClass().getName());
+        preferences.put("UserName", getPlayerName());
+        preferences.put("IpAddress", getIpAddress());
+    }
+
+    public boolean wasClosed() {
+        return closed;
     }
 }

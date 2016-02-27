@@ -1,5 +1,6 @@
 package it.unibs.pajc.agar.network;
 
+import it.unibs.pajc.agar.GameController;
 import it.unibs.pajc.agar.universe.Universe;
 
 import javax.swing.*;
@@ -73,7 +74,7 @@ public class NetworkController extends Thread {
             connections.remove(connection);
             if (isServer) universe.removePlayer(((NetworkConnection.Server) connection).getPlayerName());
             if (connections.size() == 0 && !isServer) {
-                currentState = ConnectionState.EXIT;
+                GameController.getInstance().disconnectedMessage();
                 this.interrupt();
             }
             }
