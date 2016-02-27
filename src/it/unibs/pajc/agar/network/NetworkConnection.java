@@ -115,7 +115,7 @@ public abstract class NetworkConnection extends Thread{
 
     public static class Server extends NetworkConnection {
 
-        private String playerName = "NoName";
+        private String playerName = null;
         private ArrayList<Integer> notifiedFood = new ArrayList<>();
 
         public Server(Universe universe, Socket socket, NetworkController networkController) {
@@ -172,12 +172,14 @@ public abstract class NetworkConnection extends Thread{
         public void receive(String in) {
             try {
                 JSONObject inJson = new JSONObject(in);
-                playerName = inJson.getString("n");
-                Player thisPlayer = myUniverse.getPlayer(playerName);
-                if (thisPlayer == null) {
-                    if (!myUniverse.existsPlayer(playerName)) myUniverse.updatePlayer(inJson, true);
-                    else sendError("Name already used");
+                Player thisPlayer = myUniverse.getPlayer(inJson.getString("n"));
+                if (thisPlayer != null && playerName == null) {
+                    //Already used name
+                    sendError("Name already used");
+                    return;
                 }
+                playerName = inJson.getString("n");
+                if (thisPlayer == null) myUniverse.updatePlayer(inJson, true);
                 else thisPlayer.fromJSON(new JSONObject(in));
 
                 if (inJson.has("ep")) {

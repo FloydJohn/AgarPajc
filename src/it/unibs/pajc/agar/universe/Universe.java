@@ -193,7 +193,7 @@ public class Universe {
     }
 
     public void removePlayer(String name) {
-        players.remove(name);
+        if (players.containsKey(name)) players.remove(name);
     }
 
     public JSONObject getJson() {
@@ -213,6 +213,9 @@ public class Universe {
     }
 
     public boolean existsPlayer(String playerName) {
-        return players.containsKey(playerName);
+        for (String name : players.keySet())
+            if (name.equals(playerName))
+                return true;
+        return false;
     }
 }
