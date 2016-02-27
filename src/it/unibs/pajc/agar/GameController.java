@@ -130,6 +130,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
     }
 
     private void deadLoop(Graphics2D g) {
+        universe.update();
         oldTransform = g.getTransform();
         updateViewWindow();
         initScreen(g);

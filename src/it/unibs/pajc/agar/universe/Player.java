@@ -16,6 +16,7 @@ public class Player extends CircleObject {
     public Player(String name, Point2D.Float position, int mass, int color, Universe universe) {
         super(position, mass, possibleColors[color], universe);
         this.name = name;
+        this.color = color;
     }
 
     public Player(Universe universe, JSONObject playerJson) {
@@ -46,6 +47,7 @@ public class Player extends CircleObject {
                 } else return;
             }
             name = in.getString("n");
+            System.out.println("[Player.fromJSON] Color = " + color);
             color = in.getInt("c");
             super.fromJSON(in);
             if (in.has("e")) universe.eatFoods(in.getJSONArray("e"));
