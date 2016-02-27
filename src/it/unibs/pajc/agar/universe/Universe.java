@@ -193,7 +193,8 @@ public class Universe {
     }
 
     public void removePlayer(String name) {
-        if (players.containsKey(name)) players.remove(name);
+        if (name == null) return;
+        players.remove(name);
     }
 
     public JSONObject getJson() {

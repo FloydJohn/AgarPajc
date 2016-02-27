@@ -176,6 +176,7 @@ public abstract class NetworkConnection extends Thread{
                 if (thisPlayer != null && playerName == null) {
                     //Already used name
                     sendError("Name already used");
+                    this.interrupt();
                     return;
                 }
                 playerName = inJson.getString("n");
