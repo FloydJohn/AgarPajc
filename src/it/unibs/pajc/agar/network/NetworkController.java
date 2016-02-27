@@ -74,7 +74,7 @@ public class NetworkController extends Thread {
             connections.remove(connection);
             if (isServer) universe.removePlayer(((NetworkConnection.Server) connection).getPlayerName());
             if (connections.size() == 0 && !isServer) {
-                GameController.getInstance().disconnectedMessage();
+                GameController.getInstance().abort("Server Disconnected");
                 this.interrupt();
             }
             }

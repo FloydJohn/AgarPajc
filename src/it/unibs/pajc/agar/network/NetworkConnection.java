@@ -1,5 +1,6 @@
 package it.unibs.pajc.agar.network;
 
+import it.unibs.pajc.agar.GameController;
 import it.unibs.pajc.agar.universe.Player;
 import it.unibs.pajc.agar.universe.Universe;
 import org.json.JSONArray;
@@ -102,7 +103,10 @@ public abstract class NetworkConnection extends Thread{
         @Override
         public void receive(String in) {
             try {
-                myUniverse.fromJSON(in);
+                JSONObject inJson = new JSONObject(in);
+                if (inJson.has("error")) {
+                    GameController.getInstance().abort(inJson.getString("error"));
+                } else myUniverse.fromJSON(inJson);
             } catch (IllegalArgumentException e) {
                 System.out.println("[NetworkConnection.Client] Bad formatted json in: " + e);
             }
@@ -160,14 +164,22 @@ public abstract class NetworkConnection extends Thread{
             super.send(out);
         }
 
+        private void sendError(String error) {
+            super.send(new JSONObject().put("error", error));
+        }
+
         @Override
         public void receive(String in) {
             try {
                 JSONObject inJson = new JSONObject(in);
-                Player thisPlayer = myUniverse.getPlayer(inJson.getString("n"));
-                if (thisPlayer == null) myUniverse.updatePlayer(inJson, true);
-                else thisPlayer.fromJSON(new JSONObject(in));
                 playerName = inJson.getString("n");
+                Player thisPlayer = myUniverse.getPlayer(playerName);
+                if (thisPlayer == null) {
+                    if (!myUniverse.existsPlayer(playerName)) myUniverse.updatePlayer(inJson, true);
+                    else sendError("Name already used");
+                }
+                else thisPlayer.fromJSON(new JSONObject(in));
+
                 if (inJson.has("ep")) {
                     myUniverse.eatPlayers(inJson.getJSONArray("ep"));
                     if (thisPlayer != null)

@@ -121,9 +121,8 @@ public class Universe {
     }
 
     //Client
-    public void fromJSON(String inString) throws IllegalArgumentException {
+    public void fromJSON(JSONObject jsonObject) throws IllegalArgumentException {
         try {
-            JSONObject jsonObject = new JSONObject(inString);
             //Parse players
             JSONArray playersJson = jsonObject.getJSONArray("p");
             for (Iterator<Player> iterator = players.values().iterator(); iterator.hasNext(); ) {
@@ -211,5 +210,9 @@ public class Universe {
         String playerName = player.getName();
         player = new Player(playerName, new Point2D.Float(20, 50), 30, new Random().nextInt(Player.possibleColors.length), this);
         players.put(playerName, player);
+    }
+
+    public boolean existsPlayer(String playerName) {
+        return players.containsKey(playerName);
     }
 }
