@@ -19,7 +19,7 @@ public class Player extends CircleObject {
     }
 
     public Player(Universe universe, JSONObject playerJson) {
-        super(new Point2D.Float(), 1, Color.RED, universe);
+        super(new Point2D.Float(), playerJson.getInt("m"), Color.RED, universe);
         fromJSON(playerJson);
     }
 
