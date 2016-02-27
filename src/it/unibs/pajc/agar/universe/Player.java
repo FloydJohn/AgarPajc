@@ -47,7 +47,6 @@ public class Player extends CircleObject {
                 } else return;
             }
             name = in.getString("n");
-            System.out.println("[Player.fromJSON] Color = " + color);
             color = in.getInt("c");
             super.fromJSON(in);
             if (in.has("e")) universe.eatFoods(in.getJSONArray("e"));
