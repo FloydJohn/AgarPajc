@@ -247,5 +247,6 @@ public class GameController extends JPanel implements KeyListener, MouseListener
 
     public void disconnectedMessage() {
         JOptionPane.showMessageDialog(this, "Exiting: server disconnected.", "Server Disconnected", JOptionPane.ERROR_MESSAGE);
+        System.exit(1);
     }
 }
