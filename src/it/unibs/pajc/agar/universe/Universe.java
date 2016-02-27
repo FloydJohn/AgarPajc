@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.Iterator;
@@ -13,23 +14,30 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Universe {
 
+    private static final int FOODS_NUMBER = 500;
     private final Random generator = new Random();
     private final boolean isServer;
+    private final Dimension universeDimension = new Dimension(5000, 3000);
     private ConcurrentHashMap<String, Player> players = new ConcurrentHashMap<>();
     private ConcurrentHashMap<Integer, Food> foods = new ConcurrentHashMap<>();
     private int currentFoodId = 0;
-    private Dimension universeDimension;
     private Player player;
     private JSONObject jsonData = new JSONObject();
     private ConcurrentLinkedQueue<Food> eatenFoods = new ConcurrentLinkedQueue<>();
     private ConcurrentLinkedQueue<Player> eatenPlayers = new ConcurrentLinkedQueue<>();
     private boolean playerCanDie = true;
 
-    public Universe(String playerName, Dimension universeDimension, boolean isServer) {
-        this.universeDimension = universeDimension;
+    public Universe(String playerName, boolean isServer) {
         player = new Player(playerName, new Point2D.Float(20, 50), 30, new Random().nextInt(Player.possibleColors.length), this);
         players.put(playerName, player);
         this.isServer = isServer;
+        if (isServer) {
+            generateRandomFood(FOODS_NUMBER);
+            //Food regen
+            new Timer(1000, e -> {
+                if (foods.size() < FOODS_NUMBER) generateRandomFood(1);
+            }).start();
+        }
     }
 
     public ConcurrentLinkedQueue<Food> getEatenFoods() {
@@ -63,6 +71,7 @@ public class Universe {
     }
 
     public void update() {
+
         players.values().forEach(Player::updateMass);
         player.update();
         for (Iterator<Food> iterator = foods.values().iterator(); iterator.hasNext(); ) {

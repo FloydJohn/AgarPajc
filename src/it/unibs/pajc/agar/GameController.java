@@ -37,10 +37,9 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         this.setMinimumSize(new Dimension(800,600));
         new Timer(20, e -> this.repaint()).start();
         mouse = new Point2D.Float(0,0);
-        universe = new Universe(dialog.getPlayerName(), new Dimension(5000, 3000), dialog.isServer());
+        universe = new Universe(dialog.getPlayerName(), dialog.isServer());
         viewWindow = new Rectangle(0, 0, 0, 0);
         updateViewWindow();
-        if (dialog.isServer()) universe.generateRandomFood(500);
         NetworkController.getInstance().connect(dialog.isServer(), dialog.getIpAddress(), 1234, universe);
     }
 
