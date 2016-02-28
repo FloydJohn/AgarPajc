@@ -18,12 +18,13 @@ public class GameController extends JPanel implements KeyListener, MouseListener
     private static final String CONNECTING = "Connecting...";
 
     private static GameController instance;
-    Universe universe;
-    Point2D.Float mouse, eventMousePosition = new Point2D.Float();
-    Font loginFont = new Font("Arial", Font.BOLD, 50),
-            massFont = new Font("Arial", Font.BOLD, 12);
-    Rectangle viewWindow;
-    AffineTransform oldTransform, newTransform;
+    private final Universe universe;
+    private final Point2D.Float mouse;
+    private final Point2D.Float eventMousePosition = new Point2D.Float();
+    private final Font loginFont = new Font("Arial", Font.BOLD, 50);
+    private final Font massFont = new Font("Arial", Font.BOLD, 12);
+    private final Rectangle viewWindow;
+    private AffineTransform oldTransform;
     private boolean debugging = false;
     private int dotsTimer = 0;
     private int redAnimation = 50;
@@ -88,7 +89,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         oldTransform = g.getTransform();
         updateViewWindow();
         initScreen(g);
-        newTransform = g.getTransform();
+        AffineTransform newTransform = g.getTransform();
         mouse.setLocation(eventMousePosition.x * viewWindow.getWidth() / this.getWidth() + viewWindow.getX(),
                 eventMousePosition.y * viewWindow.getHeight() / this.getHeight() + viewWindow.getY());
 
@@ -102,7 +103,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         universe.update();
 
         for (Food f : universe.getFoods().values()) {
-            if (!f.isInside(viewWindow) || f.getCurrentState().equals(GameObject.State.REMOVING)) continue;
+            if (f.isOutside(viewWindow) || f.getCurrentState().equals(GameObject.State.REMOVING)) continue;
             g.setColor(f.getColor());
             g.fill(f.getShape(true));
         }
@@ -124,7 +125,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
             }
             g.setColor(p.getColor());
             g.setTransform(newTransform);
-            if (!p.isInside(viewWindow)) continue;
+            if (p.isOutside(viewWindow)) continue;
             g.fill(p.getShape(true));
         }
     }

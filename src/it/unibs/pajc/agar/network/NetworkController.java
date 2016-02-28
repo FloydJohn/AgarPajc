@@ -12,7 +12,7 @@ import java.util.ConcurrentModificationException;
 
 public class NetworkController extends Thread {
 
-    public static final int SEND_DELAY = 20;
+    private static final int SEND_DELAY = 20;
     private static NetworkController instance;
     private final ArrayList<NetworkConnection> connections = new ArrayList<>();
     private Universe universe;
@@ -80,7 +80,7 @@ public class NetworkController extends Thread {
             }
     }
 
-    public synchronized void sendUpdate() {
+    private synchronized void sendUpdate() {
         try {
             connections.forEach(NetworkConnection::send);
         } catch (ConcurrentModificationException ignored) {

@@ -9,18 +9,17 @@ import java.awt.geom.Point2D;
 
 public abstract class GameObject {
 
-    protected Point2D.Float position;
-    protected int mass;
-    protected Shape shape;
-    protected Color color;
-    protected float speed = 0f;
-    protected Point2D.Float target;
-    protected Universe universe;
-
-    private AffineTransform shapeTransform = new AffineTransform();
+    final Universe universe;
+    private final Point2D.Float position;
+    private final Color color;
+    private final AffineTransform shapeTransform = new AffineTransform();
+    int mass;
+    Point2D.Float target;
+    private Shape shape;
+    private float speed = 0f;
     private State currentState = State.ADDED;
 
-    public GameObject(Point2D.Float position, int mass, Shape shape, Color color, Universe universe) {
+    GameObject(Point2D.Float position, int mass, Shape shape, Color color, Universe universe) {
         this.shape = shape;
         setMass(mass);
         this.position = new Point2D.Float();
@@ -30,11 +29,11 @@ public abstract class GameObject {
         this.target = (Point2D.Float) this.position.clone();
     }
 
-    public Point2D.Float getPosition() {
+    Point2D.Float getPosition() {
         return position;
     }
 
-    public void setPosition(float x, float y) {
+    private void setPosition(float x, float y) {
         this.position.x = x;
         this.position.y = y;
     }
@@ -46,7 +45,7 @@ public abstract class GameObject {
         } else return shape;
     }
 
-    public void setShape(Shape shape) {
+    void setShape(Shape shape) {
         this.shape = shape;
     }
 
@@ -54,11 +53,11 @@ public abstract class GameObject {
         return color;
     }
 
-    public void setSpeed(float speed) {
+    private void setSpeed(float speed) {
         this.speed = speed;
     }
 
-    public void setTarget(Point2D.Float target) {
+    void setTarget(Point2D.Float target) {
 
         if (target == null) {
             this.target = null;
@@ -96,8 +95,8 @@ public abstract class GameObject {
         );
     }
 
-    public boolean isInside(Rectangle viewWindow) {
-        return getShape(true).intersects(viewWindow);
+    public boolean isOutside(Rectangle viewWindow) {
+        return !getShape(true).intersects(viewWindow);
     }
 
     public State getCurrentState() {
@@ -112,7 +111,7 @@ public abstract class GameObject {
         return mass;
     }
 
-    public void setMass(int mass) {
+    void setMass(int mass) {
         this.mass = mass;
         setSpeed(Math.max(0.1f, (float) (4 - 0.001 * (float) mass)));
     }
@@ -121,7 +120,7 @@ public abstract class GameObject {
         setMass(getMass() + object.getMass());
     }
 
-    public JSONObject toJSON() {
+    JSONObject toJSON() {
         JSONObject out = new JSONObject();
         out.put("x", (int) position.getX());
         out.put("y", (int) position.getY());
@@ -129,7 +128,7 @@ public abstract class GameObject {
         return out;
     }
 
-    public void fromJSON(JSONObject in) throws IllegalArgumentException {
+    void fromJSON(JSONObject in) throws IllegalArgumentException {
         try {
             setPosition(in.getInt("x"), in.getInt("y"));
             setMass(in.getInt("m"));

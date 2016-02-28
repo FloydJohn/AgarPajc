@@ -4,10 +4,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.prefs.Preferences;
 
-public class StartDialog extends JDialog {
+class StartDialog extends JDialog {
 
-    private JTextField name = new JTextField(), ipAddress = new JTextField();
-    private JButton create = new JButton("Create"), join = new JButton("Join");
+    private final JTextField name = new JTextField();
+    private final JTextField ipAddress = new JTextField();
+    private final JButton create = new JButton("Create");
+    private final JButton join = new JButton("Join");
     private boolean isServer = false;
     private boolean closed = true;
 
@@ -54,7 +56,7 @@ public class StartDialog extends JDialog {
         return ipAddress.getText();
     }
 
-    public void closeDialog(boolean isServer) {
+    private void closeDialog(boolean isServer) {
         this.closed = false;
         this.isServer = isServer;
         this.setVisible(false);

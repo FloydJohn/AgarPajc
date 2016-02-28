@@ -18,17 +18,17 @@ public class Universe {
     private final Random generator = new Random();
     private final boolean isServer;
     private final Dimension universeDimension = new Dimension(5000, 3000);
-    private ConcurrentHashMap<String, Player> players = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<Integer, Food> foods = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Player> players = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, Food> foods = new ConcurrentHashMap<>();
+    private final ConcurrentLinkedQueue<Food> eatenFoods = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Player> eatenPlayers = new ConcurrentLinkedQueue<>();
     private int currentFoodId = 0;
     private Player player;
     private JSONObject jsonData = new JSONObject();
-    private ConcurrentLinkedQueue<Food> eatenFoods = new ConcurrentLinkedQueue<>();
-    private ConcurrentLinkedQueue<Player> eatenPlayers = new ConcurrentLinkedQueue<>();
     private boolean playerCanDie = true;
 
     public Universe(String playerName, boolean isServer) {
-        player = new Player(playerName, new Point2D.Float(20, 50), 30, new Random().nextInt(Player.possibleColors.length), this);
+        player = new Player(playerName, new Point2D.Float(20, 50), new Random().nextInt(Player.possibleColors.length), this);
         players.put(playerName, player);
         this.isServer = isServer;
         if (isServer) {
@@ -111,7 +111,7 @@ public class Universe {
     }
 
     //Server
-    public JSONObject toJSON() {
+    private JSONObject toJSON() {
         JSONArray playersJson = new JSONArray(), foodJson = new JSONArray();
         players.values().stream().forEach(p -> playersJson.put(p.toJSON()));
         for (Food f : foods.values()) foodJson.put(f.toJSON());
@@ -148,7 +148,7 @@ public class Universe {
                     if (player.isAlive() && playerCanDie && playerJson.getInt("m") < 0) player.die();
                     continue;    //Skips update if is this player
                 }
-                if (selected == null) updatePlayer(playerJson, true);
+                if (selected == null) updatePlayer(playerJson);
                 else selected.fromJSON(playerJson);
             }
 
@@ -185,11 +185,9 @@ public class Universe {
         return players.get(name);
     }
 
-    public void updatePlayer(JSONObject inJson, boolean toAdd) {
-        if (toAdd) {
-            Player newPlayer = new Player(this, inJson);
-            players.put(newPlayer.getName(), newPlayer);
-        } else players.remove(inJson.getString("n"));
+    public void updatePlayer(JSONObject inJson) {
+        Player newPlayer = new Player(this, inJson);
+        players.put(newPlayer.getName(), newPlayer);
     }
 
     public void removePlayer(String name) {
@@ -209,14 +207,7 @@ public class Universe {
         System.out.println("Restarting game!");
         playerCanDie = false;
         String playerName = player.getName();
-        player = new Player(playerName, new Point2D.Float(20, 50), 30, new Random().nextInt(Player.possibleColors.length), this);
+        player = new Player(playerName, new Point2D.Float(20, 50), new Random().nextInt(Player.possibleColors.length), this);
         players.put(playerName, player);
-    }
-
-    public boolean existsPlayer(String playerName) {
-        for (String name : players.keySet())
-            if (name.equals(playerName))
-                return true;
-        return false;
     }
 }

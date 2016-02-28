@@ -9,18 +9,18 @@ public abstract class CircleObject extends GameObject {
     private static final int ANIMATION_SPEED = 1;
     private int animationMass = -1;
 
-    public CircleObject(Point2D.Float position, int mass, Color color, Universe universe) {
+    CircleObject(Point2D.Float position, int mass, Color color, Universe universe) {
         super(position, mass, null, color, universe);
         this.animationMass = mass;
         generateShape();
     }
 
-    protected void generateShape() {
+    private void generateShape() {
         if (animationMass > 0) generateShape(animationMass);
         else generateShape(mass);
     }
 
-    protected void generateShape(int radius) {
+    void generateShape(int radius) {
         super.setShape(new Ellipse2D.Float(-radius / 2, -radius / 2, radius, radius));
     }
 
@@ -43,7 +43,7 @@ public abstract class CircleObject extends GameObject {
         return IntersectionType.NO_INTERSECTION;
     }
 
-    public float getRadius() {
+    float getRadius() {
         return (float) (getShape(false).getBounds().getWidth() / 2);
     }
 

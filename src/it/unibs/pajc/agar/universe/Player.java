@@ -13,8 +13,8 @@ public class Player extends CircleObject {
     private String name;
     private boolean updateLocked = false;
 
-    public Player(String name, Point2D.Float position, int mass, int color, Universe universe) {
-        super(position, mass, possibleColors[color], universe);
+    public Player(String name, Point2D.Float position, int color, Universe universe) {
+        super(position, 30, possibleColors[color], universe);
         this.name = name;
         this.color = color;
     }

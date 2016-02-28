@@ -12,14 +12,14 @@ import java.util.ArrayList;
 
 public abstract class NetworkConnection extends Thread{
 
-    protected Universe myUniverse;
-    protected NetworkController controller;
-    protected BufferedWriter out;
-    private Socket socket;
+    final Universe myUniverse;
+    private final NetworkController controller;
+    private final Socket socket;
+    private BufferedWriter out;
     private boolean toClose = false;
     private int attempts = 0;
 
-    public NetworkConnection(Universe universe, Socket socket, NetworkController networkController) {
+    NetworkConnection(Universe universe, Socket socket, NetworkController networkController) {
         this.myUniverse = universe;
         this.socket = socket;
         this.controller = networkController;
@@ -56,11 +56,11 @@ public abstract class NetworkConnection extends Thread{
         }
     }
 
-    public abstract void receive(String received);
+    protected abstract void receive(String received);
 
     public abstract void send();
 
-    protected void send(JSONObject json) {
+    void send(JSONObject json) {
         try {
             json.write(out);
             out.write("\n");
@@ -115,8 +115,8 @@ public abstract class NetworkConnection extends Thread{
 
     public static class Server extends NetworkConnection {
 
+        private final ArrayList<Integer> notifiedFood = new ArrayList<>();
         private String playerName = null;
-        private ArrayList<Integer> notifiedFood = new ArrayList<>();
 
         public Server(Universe universe, Socket socket, NetworkController networkController) {
             super(universe, socket, networkController);
@@ -180,7 +180,7 @@ public abstract class NetworkConnection extends Thread{
                     return;
                 }
                 playerName = inJson.getString("n");
-                if (thisPlayer == null) myUniverse.updatePlayer(inJson, true);
+                if (thisPlayer == null) myUniverse.updatePlayer(inJson);
                 else thisPlayer.fromJSON(new JSONObject(in));
 
                 if (inJson.has("ep")) {
