@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import javax.swing.*;
 import java.awt.*;
 import java.awt.geom.Point2D;
 import java.util.Iterator;
@@ -13,24 +14,30 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Universe {
 
+    private static final int FOODS_NUMBER = 500;
     private final Random generator = new Random();
     private final boolean isServer;
-    private ConcurrentHashMap<String, Player> players = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<Integer, Food> foods = new ConcurrentHashMap<>();
+    private final Dimension universeDimension = new Dimension(5000, 3000);
+    private final ConcurrentHashMap<String, Player> players = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, Food> foods = new ConcurrentHashMap<>();
+    private final ConcurrentLinkedQueue<Food> eatenFoods = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Player> eatenPlayers = new ConcurrentLinkedQueue<>();
     private int currentFoodId = 0;
-    private Dimension universeDimension;
     private Player player;
     private JSONObject jsonData = new JSONObject();
-    private ConcurrentLinkedQueue<Food> eatenFoods = new ConcurrentLinkedQueue<>();
-    private ConcurrentLinkedQueue<Player> eatenPlayers = new ConcurrentLinkedQueue<>();
-    //Client
-    private boolean updatedByServer = false;
+    private boolean playerCanDie = true;
 
-    public Universe(String playerName, Dimension universeDimension, boolean isServer) {
-        this.universeDimension = universeDimension;
-        player = new Player(playerName, true, new Point2D.Float(20, 50), 30, new Random().nextInt(Player.possibleColors.length), this);
+    public Universe(String playerName, boolean isServer) {
+        player = new Player(playerName, new Point2D.Float(20, 50), new Random().nextInt(Player.possibleColors.length), this);
         players.put(playerName, player);
         this.isServer = isServer;
+        if (isServer) {
+            generateRandomFood(FOODS_NUMBER);
+            //Food regen
+            new Timer(1000, e -> {
+                if (foods.size() < FOODS_NUMBER) generateRandomFood(1);
+            }).start();
+        }
     }
 
     public ConcurrentLinkedQueue<Food> getEatenFoods() {
@@ -64,6 +71,7 @@ public class Universe {
     }
 
     public void update() {
+
         players.values().forEach(Player::updateMass);
         player.update();
         for (Iterator<Food> iterator = foods.values().iterator(); iterator.hasNext(); ) {
@@ -84,18 +92,14 @@ public class Universe {
         for (Player p : players.values()) {
             if (p == player || !p.isAlive()) continue;
             if (player.intersects(p).equals(IntersectionType.THIS_EATS)) {
-                System.out.println("[Universe#update] Eaten Player! Mass gained = " + p.getPieces().get(0).getMass());
-                player.eat(p);
-                if (p.getPieces().size() == 0) {
-                    p.lockUpdates();
-                    if (isServer) {
-                        p.clearPieces();
-                        System.out.println("[Universe#update] I am server and ate " + p.getName());
-                    } else {
-                        System.out.println("[Universe#update] I am client and ate " + p.getName());
-                        eatenPlayers.add(p);
-                        p.clearPieces();
-                    }
+                System.out.println("[Universe#update] Eaten Player! Mass gained = " + p.getMass());
+                player.eat(p.getMass());
+                p.die();
+                if (isServer) {
+                    System.out.println("[Universe#update] I am server and ate " + p.getName());
+                } else {
+                    System.out.println("[Universe#update] I am client and ate " + p.getName());
+                    eatenPlayers.add(p);
                 }
             }
         }
@@ -107,7 +111,7 @@ public class Universe {
     }
 
     //Server
-    public JSONObject toJSON() {
+    private JSONObject toJSON() {
         JSONArray playersJson = new JSONArray(), foodJson = new JSONArray();
         players.values().stream().forEach(p -> playersJson.put(p.toJSON()));
         for (Food f : foods.values()) foodJson.put(f.toJSON());
@@ -117,9 +121,8 @@ public class Universe {
     }
 
     //Client
-    public void fromJSON(String inString) throws IllegalArgumentException {
+    public void fromJSON(JSONObject jsonObject) throws IllegalArgumentException {
         try {
-            JSONObject jsonObject = new JSONObject(inString);
             //Parse players
             JSONArray playersJson = jsonObject.getJSONArray("p");
             for (Iterator<Player> iterator = players.values().iterator(); iterator.hasNext(); ) {
@@ -137,22 +140,17 @@ public class Universe {
                 }
             }
 
-
-            boolean alive = false;
             for (Object element : playersJson) {
                 JSONObject playerJson = (JSONObject) element;
                 Player selected = getPlayer(playerJson.getString("n"));
                 if (selected == player) {
-                    alive = true;
-                    updatedByServer = true;
+                    if (!playerCanDie && playerJson.getInt("m") >= 0) playerCanDie = true;
+                    if (player.isAlive() && playerCanDie && playerJson.getInt("m") < 0) player.die();
                     continue;    //Skips update if is this player
                 }
-                if (selected == null) updatePlayer(playerJson, true);
+                if (selected == null) updatePlayer(playerJson);
                 else selected.fromJSON(playerJson);
             }
-
-
-            if (!alive && updatedByServer) player.clearPieces();
 
             //Parse Eaten
             if (jsonObject.has("r"))
@@ -179,7 +177,7 @@ public class Universe {
     public void eatPlayers(JSONArray eatenPlayers) {
         for (Object p : eatenPlayers) {
             //noinspection RedundantCast
-            players.get((String) p).clearPieces();
+            players.get((String) p).die();
         }
     }
 
@@ -187,16 +185,13 @@ public class Universe {
         return players.get(name);
     }
 
-    public void updatePlayer(JSONObject inJson, boolean toAdd) {
-        if (toAdd) {
-            if (inJson.getJSONArray("i").length() > 0) {
-                Player newPlayer = new Player(this, inJson);
-                players.put(newPlayer.getName(), newPlayer);
-            }
-        } else players.remove(inJson.getString("n"));
+    public void updatePlayer(JSONObject inJson) {
+        Player newPlayer = new Player(this, inJson);
+        players.put(newPlayer.getName(), newPlayer);
     }
 
     public void removePlayer(String name) {
+        if (name == null) return;
         players.remove(name);
     }
 
@@ -210,8 +205,9 @@ public class Universe {
 
     public void restartGame() {
         System.out.println("Restarting game!");
+        playerCanDie = false;
         String playerName = player.getName();
-        player = new Player(playerName, true, new Point2D.Float(20, 50), 30, new Random().nextInt(Player.possibleColors.length), this);
+        player = new Player(playerName, new Point2D.Float(20, 50), new Random().nextInt(Player.possibleColors.length), this);
         players.put(playerName, player);
     }
 }

@@ -8,7 +8,7 @@ import java.util.Random;
 
 public class Food extends CircleObject{
 
-    public static final Color[] possibleColors = new Color[]{Color.CYAN, Color.BLUE, Color.RED, Color.GREEN, Color.PINK, Color.ORANGE};
+    private static final Color[] possibleColors = new Color[]{Color.CYAN, Color.BLUE, Color.RED, Color.GREEN, Color.PINK, Color.ORANGE};
     private static final int FOOD_SIZE = 10;
     private int id;
 
@@ -27,11 +27,6 @@ public class Food extends CircleObject{
 
     public int getId() {
         return id;
-    }
-
-    @Override
-    protected void prepareUpdate() {
-
     }
 
     @Override

@@ -1,5 +1,6 @@
 package it.unibs.pajc.agar.network;
 
+import it.unibs.pajc.agar.GameController;
 import it.unibs.pajc.agar.universe.Player;
 import it.unibs.pajc.agar.universe.Universe;
 import org.json.JSONArray;
@@ -11,14 +12,14 @@ import java.util.ArrayList;
 
 public abstract class NetworkConnection extends Thread{
 
-    protected Universe myUniverse;
-    protected NetworkController controller;
-    protected BufferedWriter out;
-    private Socket socket;
+    final Universe myUniverse;
+    private final NetworkController controller;
+    private final Socket socket;
+    private BufferedWriter out;
     private boolean toClose = false;
     private int attempts = 0;
 
-    public NetworkConnection(Universe universe, Socket socket, NetworkController networkController) {
+    NetworkConnection(Universe universe, Socket socket, NetworkController networkController) {
         this.myUniverse = universe;
         this.socket = socket;
         this.controller = networkController;
@@ -55,11 +56,11 @@ public abstract class NetworkConnection extends Thread{
         }
     }
 
-    public abstract void receive(String received);
+    protected abstract void receive(String received);
 
     public abstract void send();
 
-    protected void send(JSONObject json) {
+    void send(JSONObject json) {
         try {
             json.write(out);
             out.write("\n");
@@ -102,7 +103,10 @@ public abstract class NetworkConnection extends Thread{
         @Override
         public void receive(String in) {
             try {
-                myUniverse.fromJSON(in);
+                JSONObject inJson = new JSONObject(in);
+                if (inJson.has("error")) {
+                    GameController.getInstance().abort(inJson.getString("error"));
+                } else myUniverse.fromJSON(inJson);
             } catch (IllegalArgumentException e) {
                 System.out.println("[NetworkConnection.Client] Bad formatted json in: " + e);
             }
@@ -111,8 +115,8 @@ public abstract class NetworkConnection extends Thread{
 
     public static class Server extends NetworkConnection {
 
-        private String playerName = "NoName";
-        private ArrayList<Integer> notifiedFood = new ArrayList<>();
+        private final ArrayList<Integer> notifiedFood = new ArrayList<>();
+        private String playerName = null;
 
         public Server(Universe universe, Socket socket, NetworkController networkController) {
             super(universe, socket, networkController);
@@ -160,14 +164,25 @@ public abstract class NetworkConnection extends Thread{
             super.send(out);
         }
 
+        private void sendError(String error) {
+            super.send(new JSONObject().put("error", error));
+        }
+
         @Override
         public void receive(String in) {
             try {
                 JSONObject inJson = new JSONObject(in);
                 Player thisPlayer = myUniverse.getPlayer(inJson.getString("n"));
-                if (thisPlayer == null) myUniverse.updatePlayer(inJson, true);
-                else thisPlayer.fromJSON(new JSONObject(in));
+                if (thisPlayer != null && playerName == null) {
+                    //Already used name
+                    sendError("Name already used");
+                    this.interrupt();
+                    return;
+                }
                 playerName = inJson.getString("n");
+                if (thisPlayer == null) myUniverse.updatePlayer(inJson);
+                else thisPlayer.fromJSON(new JSONObject(in));
+
                 if (inJson.has("ep")) {
                     myUniverse.eatPlayers(inJson.getJSONArray("ep"));
                     if (thisPlayer != null)

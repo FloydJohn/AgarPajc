@@ -1,5 +1,6 @@
 package it.unibs.pajc.agar.network;
 
+import it.unibs.pajc.agar.GameController;
 import it.unibs.pajc.agar.universe.Universe;
 
 import javax.swing.*;
@@ -11,7 +12,7 @@ import java.util.ConcurrentModificationException;
 
 public class NetworkController extends Thread {
 
-    public static final int SEND_DELAY = 20;
+    private static final int SEND_DELAY = 20;
     private static NetworkController instance;
     private final ArrayList<NetworkConnection> connections = new ArrayList<>();
     private Universe universe;
@@ -73,13 +74,13 @@ public class NetworkController extends Thread {
             connections.remove(connection);
             if (isServer) universe.removePlayer(((NetworkConnection.Server) connection).getPlayerName());
             if (connections.size() == 0 && !isServer) {
-                currentState = ConnectionState.EXIT;
+                GameController.getInstance().abort("Server Disconnected");
                 this.interrupt();
             }
             }
     }
 
-    public synchronized void sendUpdate() {
+    private synchronized void sendUpdate() {
         try {
             connections.forEach(NetworkConnection::send);
         } catch (ConcurrentModificationException ignored) {

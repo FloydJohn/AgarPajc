@@ -18,12 +18,13 @@ public class GameController extends JPanel implements KeyListener, MouseListener
     private static final String CONNECTING = "Connecting...";
 
     private static GameController instance;
-    Universe universe;
-    Point2D.Float mouse, eventMousePosition = new Point2D.Float();
-    Font loginFont = new Font("Arial", Font.BOLD, 50),
-            massFont = new Font("Arial", Font.BOLD, 12);
-    Rectangle viewWindow;
-    AffineTransform oldTransform, newTransform;
+    private final Universe universe;
+    private final Point2D.Float mouse;
+    private final Point2D.Float eventMousePosition = new Point2D.Float();
+    private final Font loginFont = new Font("Arial", Font.BOLD, 50);
+    private final Font massFont = new Font("Arial", Font.BOLD, 12);
+    private final Rectangle viewWindow;
+    private AffineTransform oldTransform;
     private boolean debugging = false;
     private int dotsTimer = 0;
     private int redAnimation = 50;
@@ -33,13 +34,13 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         super();
         StartDialog dialog = new StartDialog();
         dialog.setVisible(true);
+        if (dialog.wasClosed()) System.exit(0);
         this.setMinimumSize(new Dimension(800,600));
         new Timer(20, e -> this.repaint()).start();
         mouse = new Point2D.Float(0,0);
-        universe = new Universe(dialog.getPlayerName(), new Dimension(5000, 3000), dialog.isServer());
+        universe = new Universe(dialog.getPlayerName(), dialog.isServer());
         viewWindow = new Rectangle(0, 0, 0, 0);
         updateViewWindow();
-        if (dialog.isServer()) universe.generateRandomFood(500);
         NetworkController.getInstance().connect(dialog.isServer(), dialog.getIpAddress(), 1234, universe);
     }
 
@@ -88,7 +89,7 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         oldTransform = g.getTransform();
         updateViewWindow();
         initScreen(g);
-        newTransform = g.getTransform();
+        AffineTransform newTransform = g.getTransform();
         mouse.setLocation(eventMousePosition.x * viewWindow.getWidth() / this.getWidth() + viewWindow.getX(),
                 eventMousePosition.y * viewWindow.getHeight() / this.getHeight() + viewWindow.getY());
 
@@ -102,33 +103,35 @@ public class GameController extends JPanel implements KeyListener, MouseListener
         universe.update();
 
         for (Food f : universe.getFoods().values()) {
-            if (!f.isInside(viewWindow) || f.getCurrentState().equals(GameObject.State.REMOVING)) continue;
+            if (f.isOutside(viewWindow) || f.getCurrentState().equals(GameObject.State.REMOVING)) continue;
             g.setColor(f.getColor());
             g.fill(f.getShape(true));
         }
 
         g.setFont(massFont);
+        int writeIndex = 1;
         for (Player p : universe.getPlayers().values()) {
-            if (!p.isAlive()) continue;
-            if (p == universe.getPlayer()) {
+            //if (!p.isAlive()) continue;
+            if (debugging) {
                 g.setTransform(oldTransform);
                 g.setColor(Color.BLACK);
-                if (debugging) g.drawString(String.format("x=%d   y=%d   m=%d   r=%d",
+                g.drawString(String.format("n = %s    x=%d   y=%d   m=%d   r=%d",
+                        p.getName(),
                         (int) p.getPosition().x,
                         (int) p.getPosition().y,
-                        p.getPieces().get(0).getMass(),
-                        (int) p.getRadius()), 0, 12);
+                        p.getMass(),
+                        (int) p.getRadius()
+                ), 0, 12 * (writeIndex++));
             }
             g.setColor(p.getColor());
             g.setTransform(newTransform);
-            for (Player.Piece piece : p.getPieces()) {
-                if (!piece.isInside(viewWindow)) continue;
-                g.fill(piece.getShape(true));
-            }
+            if (p.isOutside(viewWindow)) continue;
+            g.fill(p.getShape(true));
         }
     }
 
     private void deadLoop(Graphics2D g) {
+        universe.update();
         oldTransform = g.getTransform();
         updateViewWindow();
         initScreen(g);
@@ -241,5 +244,10 @@ public class GameController extends JPanel implements KeyListener, MouseListener
     @Override
     public void mouseMoved(MouseEvent e) {
         this.eventMousePosition.setLocation(e.getX(), this.getHeight() - e.getY());
+    }
+
+    public void abort(String s) {
+        JOptionPane.showMessageDialog(this, String.format("Error: %s", s), s, JOptionPane.ERROR_MESSAGE);
+        System.exit(1);
     }
 }

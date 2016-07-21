@@ -2,10 +2,10 @@ package it.unibs.pajc.agar;
 
 import javax.swing.*;
 
-public class MainFrame {
+class MainFrame {
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("AgarPajc");
+        JFrame frame = new JFrame("AgarUnibs");
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.getContentPane().add(GameController.getInstance());
         frame.setMinimumSize(GameController.getInstance().getMinimumSize());
